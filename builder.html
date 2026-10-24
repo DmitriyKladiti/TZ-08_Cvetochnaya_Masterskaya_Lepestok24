@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Соберите авторский букет: выберите цветы, количество стеблей, зелень и упаковку.">
+  <meta name="theme-color" content="#FBF6F1">
+  <title>Конструктор букета — ЛЕПЕСТОК 24</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Конструктор букета — ЛЕПЕСТОК 24">
+  <meta property="og:description" content="Соберите авторский букет: выберите цветы, количество стеблей, зелень и упаковку.">
+  <meta property="og:image" content="og-image.svg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <script src="js/script.js" defer></script>
+</head>
+<body class="page-builder">
+<a class="skip-link" href="#main-content">Перейти к содержимому</a><div class="topline"><div class="container topline-inner"><span>Цветочная мастерская и доставка</span><span>День матери · 29 ноября 2026</span><a href="tel:+79008242424">+7 (900) 824-24-24</a></div></div><header class="site-header container"><a class="brand" href="index.html" aria-label="Лепесток 24 — на главную"><span class="brand-mark">Л</span><span class="brand-copy"><strong>ЛЕПЕСТОК <b>24</b></strong><small>цветочная мастерская и доставка</small></span></a><nav class="main-nav" aria-label="Основная навигация"><a href="index.html">Главная</a><a href="catalog.html">Каталог</a><a href="builder.html">Конструктор</a><a href="delivery.html">Доставка</a><a href="care.html">Уход</a><a href="contacts.html">Заказ</a></nav><a class="header-order" href="contacts.html">Оформить заказ <span aria-hidden="true">↗</span></a></header>
+<main id="main-content" class="container page-main">
+  <section class="page-intro page-intro-grid"><div><p class="eyebrow">ВАША ИДЕЯ · ВАШ БУКЕТ</p><h1>Соберите букет<br><em>своего настроения.</em></h1><p class="lead">Укажите количество стеблей и упаковку. Цена пересчитается автоматически по стоимости из задания.</p></div><div class="image-placeholder page-intro-image"><span>место для картинки</span><small>Пример авторского букета</small></div></section>
+  <form id="builder-form" class="builder-layout" action="contacts.html" method="get">
+    <div class="builder-main"><section class="panel"><div class="panel-heading"><span class="step-number">01</span><div><h2>Выберите цветы</h2><p>Стоимость указана за стебель. Всего от 5 до 51 стебля.</p></div></div>
+      <div class="flower-list">
+        <div class="flower-row"><div><strong>Розы</strong><small>190 ₽ / стебель</small></div><label class="visually-hidden" for="roses-count">Количество роз</label><div class="quantity-control"><input id="roses-count" name="roses" type="number" min="0" max="51" step="1" value="5" data-flower-price="190"><span>шт.</span></div></div>
+        <div class="flower-row"><div><strong>Пионовидные розы</strong><small>260 ₽ / стебель</small></div><label class="visually-hidden" for="peony-count">Количество пионовидных роз</label><div class="quantity-control"><input id="peony-count" name="peony_roses" type="number" min="0" max="51" step="1" value="0" data-flower-price="260"><span>шт.</span></div></div>
+        <div class="flower-row"><div><strong>Хризантемы</strong><small>150 ₽ / стебель</small></div><label class="visually-hidden" for="chrysanthemum-count">Количество хризантем</label><div class="quantity-control"><input id="chrysanthemum-count" name="chrysanthemums" type="number" min="0" max="51" step="1" value="0" data-flower-price="150"><span>шт.</span></div></div>
+        <div class="flower-row"><div><strong>Эустома</strong><small>220 ₽ / стебель</small></div><label class="visually-hidden" for="eustoma-count">Количество эустомы</label><div class="quantity-control"><input id="eustoma-count" name="eustoma" type="number" min="0" max="51" step="1" value="0" data-flower-price="220"><span>шт.</span></div></div>
+      </div>
+      <label class="check-row" for="greenery"><input id="greenery" name="greenery" type="checkbox" value="yes"><span><strong>Добавить зелень</strong><small>300 ₽ за оформление</small></span></label>
+    </section>
+    <section class="panel"><div class="panel-heading"><span class="step-number">02</span><div><h2>Выберите упаковку</h2><p>Отделка завершает композицию.</p></div></div>
+      <div class="wrap-options"><label class="wrap-option"><input type="radio" name="wrap" value="craft" data-wrap-price="250" checked><span class="wrap-swatch swatch-craft"></span><span class="wrap-name"><strong>Крафт</strong><small>250 ₽</small></span></label><label class="wrap-option"><input type="radio" name="wrap" value="film" data-wrap-price="350"><span class="wrap-swatch swatch-film"></span><span class="wrap-name"><strong>Плёнка</strong><small>350 ₽</small></span></label><label class="wrap-option"><input type="radio" name="wrap" value="hatbox" data-wrap-price="900"><span class="wrap-swatch swatch-box"></span><span class="wrap-name"><strong>Шляпная коробка</strong><small>900 ₽</small></span></label></div>
+    </section></div>
+    <aside class="builder-summary"><p class="eyebrow">ВАШ БУКЕТ</p><h2>Итоговая стоимость</h2><p class="summary-price" id="builder-total" aria-live="polite">1 200 ₽</p><div class="summary-line"><span>Количество стеблей</span><strong id="stems-total">5</strong></div><div class="summary-line"><span>Цветы</span><strong id="flowers-total">950 ₽</strong></div><div class="summary-line"><span>Упаковка и зелень</span><strong id="extras-total">250 ₽</strong></div><p id="builder-message" class="form-note" aria-live="polite">Можно продолжить оформление заказа.</p><input type="hidden" name="item_id" value="CUSTOM"><input type="hidden" name="item_description" id="builder-description" value="5 роз, крафт"><input type="hidden" name="item_price" id="builder-price" value="1200"><button class="button button-full" type="submit" id="builder-order-button">Оформить заказ <span aria-hidden="true">↗</span></button><p class="fine-print">Пример расчёта: 11 роз в крафте — 11 × 190 + 250 = 2 340 ₽.</p></aside>
+  </form>
+</main>
+<footer class="site-footer"><div class="footer-main container"><div class="footer-brand-block"><a class="brand brand-footer" href="index.html" aria-label="Лепесток 24 — на главную"><span class="brand-mark">Л</span><span class="brand-copy"><strong>ЛЕПЕСТОК <b>24</b></strong><small>цветочная мастерская и доставка</small></span></a><p>Букеты и доставка по Новоозёрску.</p><p class="footer-address">614 102, г. Новоозёрск,<br>ул. Цветочная, д. 24</p></div><div class="footer-column"><h2>Покупателям</h2><a href="catalog.html">Каталог букетов</a><a href="builder.html">Конструктор букета</a><a href="delivery.html">Доставка и оплата</a><a href="care.html">Уход за букетом</a></div><div class="footer-column"><h2>Связаться</h2><a href="tel:+79008242424">+7 (900) 824-24-24</a><a href="mailto:order@lepestok24.example">order@lepestok24.example</a><a href="https://t.me/lepestok24_manager" target="_blank" rel="noopener noreferrer">Telegram менеджера ↗</a><a href="https://wa.me/79008242424" target="_blank" rel="noopener noreferrer">WhatsApp ↗</a></div><div class="footer-cta"><p>Цветы к важному моменту</p><a class="footer-cta-link" href="catalog.html">Выбрать букет <span aria-hidden="true">↗</span></a></div></div><div class="footer-bottom container"><span>© ЛЕПЕСТОК 24 · цветочная мастерская</span><div><a href="privacy.html">Политика конфиденциальности</a><a href="thanks.html">Спасибо</a></div><span>Новоозёрск · 2026</span></div></footer>
+</body>
+</html>
