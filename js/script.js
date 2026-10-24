@@ -734,3 +734,66 @@ if (thanksRequestId) {
   });
 })();
 
+
+
+ // Случайная фотография букета на главной странице.
+const heroImage = document.querySelector("#hero-random-image");
+
+if (heroImage) {
+  const extensions = [".jpg", ".jpeg", ".png", ".webp", ".avif"];
+
+  // Перемешиваем все артикулы, чтобы выбирать случайный букет.
+  const bouquets = Array.from({ length: 24 }, (_, index) =>
+    `B-${String(index + 1).padStart(2, "0")}`
+  ).sort(() => Math.random() - 0.5);
+
+  // Ищем первую существующую и загружаемую фотографию.
+  const tryBouquet = (bouquetIndex) => {
+    if (bouquetIndex >= bouquets.length) {
+      // Фотографии не найдены — сохраняем заглушку.
+      return;
+    }
+
+    const bouquetCode = bouquets[bouquetIndex];
+    let extensionIndex = 0;
+
+    const tryExtension = () => {
+      if (extensionIndex >= extensions.length) {
+        // У этого букета нет подходящего изображения.
+        tryBouquet(bouquetIndex + 1);
+        return;
+      }
+
+      const imagePath =
+        `flowers_img/${bouquetCode}${extensions[extensionIndex]}`;
+
+      extensionIndex++;
+
+      const image = new Image();
+
+      image.onload = () => {
+        heroImage.style.backgroundImage =
+          `url("${imagePath}")`;
+        heroImage.style.backgroundSize = "cover";
+        heroImage.style.backgroundPosition = "center";
+
+        // Скрываем текст заглушки, когда фотография найдена.
+        heroImage.querySelectorAll("span, small").forEach((element) => {
+          element.style.display = "none";
+        });
+
+        heroImage.setAttribute(
+          "aria-label",
+          `Букет ${bouquetCode}`
+        );
+      };
+
+      image.onerror = tryExtension;
+      image.src = imagePath;
+    };
+
+    tryExtension();
+  };
+
+  tryBouquet(0);
+}
