@@ -679,3 +679,58 @@ if (thanksRequestId) {
     thanksRequestId.textContent = requestId;
   }
 }
+
+// Изображения букетов на главной и в каталоге.
+// Файлы размещаются в корневой папке flowers_img и называются по артикулу:
+// B-01.jpg, B-02.png и т. п. Если файл не найден, остаётся текущая заглушка.
+(() => {
+  const imageFolder = "flowers_img/";
+  const imageExtensions = [
+    ".jpg", ".jpeg", ".png", ".webp", ".avif",
+    ".JPG", ".JPEG", ".PNG", ".WEBP", ".AVIF", ""
+  ];
+  const validSku = /^B-\d{2}$/;
+
+  const addFlowerImage = (placeholder, sku) => {
+    if (!placeholder || !validSku.test(sku || "")) return;
+
+    // Не добавляем одно изображение повторно, если разметка будет расширена.
+    if (placeholder.querySelector(".flower-photo")) return;
+
+    const image = document.createElement("img");
+    image.className = "flower-photo";
+    image.alt = `Букет ${sku}`;
+    image.loading = "lazy";
+    image.decoding = "async";
+
+    let extensionIndex = 0;
+
+    const tryNextExtension = () => {
+      if (extensionIndex >= imageExtensions.length) {
+        image.remove();
+        return;
+      }
+
+      image.src = `${imageFolder}${sku}${imageExtensions[extensionIndex++]}`;
+    };
+
+    image.addEventListener("load", () => {
+      placeholder.classList.add("has-flower-image");
+    }, { once: true });
+
+    image.addEventListener("error", tryNextExtension);
+    placeholder.appendChild(image);
+    tryNextExtension();
+  };
+
+  // Каталог: артикул берётся из data-sku каждой карточки (B-01 ... B-24).
+  document.querySelectorAll(".catalog-product").forEach((card) => {
+    addFlowerImage(card.querySelector(".product-image"), card.dataset.sku);
+  });
+
+  // Главная: артикулы заданы у hero-блока, категорий и избранных букетов.
+  document.querySelectorAll(".page-index [data-image-id]").forEach((placeholder) => {
+    addFlowerImage(placeholder, placeholder.dataset.imageId);
+  });
+})();
+
