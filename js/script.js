@@ -3,6 +3,16 @@
 // Этот файл содержит только поведение интерфейса. События GA4 здесь не отправляются.
 
 const ORDER_FLOW_KEY = "lepestok24_order_flow";
+const DELIVERY_TIME_SLOTS = [
+  "09:00 — 11:00",
+  "11:00 — 13:00",
+  "13:00 — 15:00",
+  "15:00 — 17:00",
+  "17:00 — 19:00",
+  "19:00 — 21:00"
+];
+
+const isValidDeliveryTime = (value) => DELIVERY_TIME_SLOTS.includes(value || "");
 
 const readOrderFlow = () => {
   try {
@@ -59,6 +69,9 @@ const readOrderFlowFromUrl = () => {
     item_description: (pageParams.get("item_description") || "").slice(0, 500),
     delivery_zone: pageParams.get("delivery_zone") || "center",
     delivery_fee: Math.max(0, Number(pageParams.get("delivery_fee")) || 0),
+    delivery_time: isValidDeliveryTime(pageParams.get("delivery_time"))
+      ? pageParams.get("delivery_time")
+      : "",
     promo_code: (pageParams.get("promo_code") || "").slice(0, 20)
   };
 };
@@ -72,6 +85,7 @@ const orderFlowUrl = (page, flow) => {
     item_description: flow.item_description || "",
     delivery_zone: flow.delivery_zone || "center",
     delivery_fee: String(Number(flow.delivery_fee) || 0),
+    delivery_time: isValidDeliveryTime(flow.delivery_time) ? flow.delivery_time : "",
     promo_code: flow.promo_code || ""
   });
 
@@ -178,7 +192,8 @@ document.addEventListener("click", (event) => {
     item_price: itemPrice,
     item_description: itemId === "CUSTOM" && custom ? custom.description : "",
     delivery_zone: "center",
-    delivery_fee: 300
+    delivery_fee: 300,
+    delivery_time: ""
   };
 
   saveOrderFlow(flow);
@@ -395,7 +410,8 @@ if (builderForm) {
       item_price: custom.price,
       item_description: custom.description,
       delivery_zone: "center",
-      delivery_fee: 300
+      delivery_fee: 300,
+      delivery_time: ""
     };
 
     saveOrderFlow(flow);
@@ -405,7 +421,7 @@ if (builderForm) {
   updateBuilder();
 }
 
-// Калькулятор доставки.
+// Калькулятор доставки и выбор интервала времени.
 const deliveryZone = document.querySelector("#delivery-zone");
 const orderSum = document.querySelector("#order-sum");
 
@@ -413,7 +429,38 @@ if (deliveryZone && orderSum) {
   const priceNode = document.querySelector("#delivery-cost");
   const messageNode = document.querySelector("#delivery-message");
   const summaryNode = document.querySelector("#selected-order-summary");
+  const timeMessageNode = document.querySelector("#delivery-time-message");
+  const timeButtons = Array.from(document.querySelectorAll("[data-delivery-time]"));
   const deliveryFlow = currentFlow || readOrderFlow();
+  let selectedDeliveryTime = "";
+
+  const showSelectedDeliveryTime = (value, persistSelection = false) => {
+    selectedDeliveryTime = isValidDeliveryTime(value) ? value : "";
+
+    timeButtons.forEach((button) => {
+      const selected = button.dataset.deliveryTime === selectedDeliveryTime;
+      button.setAttribute("aria-pressed", String(selected));
+      button.classList.toggle("is-selected", selected);
+    });
+
+    if (timeMessageNode) {
+      timeMessageNode.textContent = selectedDeliveryTime
+        ? `Выбран интервал: ${selectedDeliveryTime}.`
+        : "Выберите интервал доставки, чтобы продолжить оформление.";
+    }
+
+    if (persistSelection && deliveryFlow && deliveryFlow.item_id === requestedOrderId) {
+      deliveryFlow.delivery_time = selectedDeliveryTime;
+      saveOrderFlow(deliveryFlow);
+
+      // Сохраняем выбранное время и в URL на случай возврата назад или запрета sessionStorage.
+      try {
+        window.history.replaceState(null, "", orderFlowUrl("delivery.html", deliveryFlow));
+      } catch (_) {
+        // В некоторых локальных file://-сценариях History API недоступен.
+      }
+    }
+  };
 
   if (deliveryFlow && deliveryFlow.item_id === requestedOrderId) {
     orderSum.value = String(Number(deliveryFlow.item_price) || 0);
@@ -431,9 +478,19 @@ if (deliveryZone && orderSum) {
         `(${deliveryFlow.item_id})${description}. ` +
         `Стоимость букета: ${rubles(
           Number(deliveryFlow.item_price) || 0
-        )}. Проверьте зону доставки и продолжите оформление.`;
+        )}. Проверьте зону и время доставки, затем продолжите оформление.`;
     }
   }
+
+  showSelectedDeliveryTime(deliveryFlow && deliveryFlow.item_id === requestedOrderId
+    ? deliveryFlow.delivery_time
+    : "");
+
+  timeButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      showSelectedDeliveryTime(button.dataset.deliveryTime, true);
+    });
+  });
 
   const updateDelivery = () => {
     const sum = Math.max(0, Number(orderSum.value) || 0);
@@ -475,6 +532,15 @@ if (deliveryZone && orderSum) {
         return;
       }
 
+      if (!isValidDeliveryTime(selectedDeliveryTime)) {
+        if (timeMessageNode) {
+          timeMessageNode.textContent = "Сначала выберите интервал доставки.";
+        }
+        const timePicker = document.querySelector("#delivery-time-picker");
+        if (timePicker) timePicker.scrollIntoView({ behavior: "smooth", block: "center" });
+        return;
+      }
+
       const baseFee = Number(
         deliveryZone.selectedOptions[0].dataset.fee
       ) || 0;
@@ -483,6 +549,7 @@ if (deliveryZone && orderSum) {
 
       flow.step = "order";
       flow.delivery_zone = deliveryZone.value;
+      flow.delivery_time = selectedDeliveryTime;
       flow.delivery_fee =
         deliveryZone.value === "pickup" || sum >= 6000
           ? 0
@@ -493,6 +560,7 @@ if (deliveryZone && orderSum) {
     });
   }
 }
+
 
 // Форма заказа: перенос выбранного товара, расчёт промокода и проверка данных.
 const orderForm = document.querySelector("#order-form");
@@ -513,6 +581,8 @@ if (orderForm) {
   const promoStatus = document.querySelector("#promo-status");
   const deliveryZoneForm = document.querySelector("#delivery-zone-form");
   const deliveryZoneDisplay = document.querySelector("#delivery-zone-display");
+  const deliveryTimeForm = document.querySelector("#delivery-time-form");
+  const deliveryTimeDisplay = document.querySelector("#delivery-time-display");
 
   const tomorrow = new Date();
   tomorrow.setHours(0, 0, 0, 0);
@@ -583,6 +653,17 @@ if (orderForm) {
     deliveryZoneDisplay.value = deliveryZoneNames[zone] || "Место доставки не указано";
   }
 
+  const selectedDeliveryTime = flowMatchesPage && isValidDeliveryTime(selectedFlow.delivery_time)
+    ? selectedFlow.delivery_time
+    : "";
+
+  if (deliveryTimeDisplay) {
+    deliveryTimeDisplay.value = selectedDeliveryTime || "Время доставки не выбрано";
+  }
+  if (deliveryTimeForm) {
+    deliveryTimeForm.value = selectedDeliveryTime;
+  }
+
   const promoFromUrl = params.get("promo_code");
   if (promoInput) {
     promoInput.value = promoFromUrl || (flowMatchesPage ? selectedFlow.promo_code : "") || "";
@@ -645,6 +726,7 @@ if (orderForm) {
       selectedFlow.current_total = currentTotal;
       selectedFlow.delivery_zone = deliveryZoneForm?.value || selectedFlow.delivery_zone || "center";
       selectedFlow.delivery_fee = deliveryFee;
+      selectedFlow.delivery_time = selectedDeliveryTime;
       saveOrderFlow(selectedFlow);
 
       // В URL остаётся резерв для случая, если браузер не хранит sessionStorage.
