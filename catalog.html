@@ -18,109 +18,315 @@
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <script src="js/script.js" defer></script>
+  <style>
+    .price-range-inputs {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+      align-items: center;
+      gap: 8px;
+    }
+    .price-range-inputs .filter-price-input {
+      box-sizing: border-box;
+      width: 100%;
+      min-width: 0;
+      min-height: 46px;
+      padding: 10px 12px;
+      border: 1px solid #d8cfc6;
+      border-radius: 3px;
+      background: #fff;
+      color: #282320;
+      font: inherit;
+    }
+    .price-range-inputs .filter-price-input:focus {
+      outline: 2px solid #8a6658;
+      outline-offset: 2px;
+    }
+    @media (max-width: 520px) {
+      .price-range-inputs { gap: 5px; }
+      .price-range-inputs .filter-price-input { padding: 9px 7px; }
+    }
+  </style>
 </head>
 <body class="page-catalog">
 <a class="skip-link" href="#main-content">Перейти к содержимому</a><div class="topline"><div class="container topline-inner"><span>Цветочная мастерская и доставка</span><span>День матери · 29 ноября 2026</span><a href="tel:+79008242424">+7 (900) 824-24-24</a></div></div><header class="site-header container"><a class="brand" href="index.html" aria-label="Лепесток 24 — на главную"><span class="brand-mark">Л</span><span class="brand-copy"><strong>ЛЕПЕСТОК <b>24</b></strong><small>цветочная мастерская и доставка</small></span></a><nav class="main-nav" aria-label="Основная навигация"><a href="index.html">Главная</a><a href="catalog.html" aria-current="page">Каталог</a><a href="builder.html">Конструктор</a><a href="care.html">Уход</a></nav></header>
 <main id="main-content" class="container page-main">
-  <section class="page-intro"><p class="eyebrow">КОЛЛЕКЦИЯ «ЛЕПЕСТОК 24»</p><h1>Каталог<br><em>букетов.</em></h1><p class="lead">24 позиции в четырёх категориях. Выберите направление — точный состав и размер мы согласуем перед заказом.</p></section>
-  <section class="catalog-toolbar" aria-label="Фильтры каталога"><div class="catalog-toolbar-heading"><p class="eyebrow">НАЙДИТЕ СВОЙ БУКЕТ</p><span id="catalog-count" aria-live="polite">24 букета</span></div><div class="filters"><div class="filter-field"><label for="filter-category">Категория</label><select id="filter-category"><option value="all">Все категории</option><option value="mama">Маме</option><option value="mono">Моно</option><option value="author">Авторские</option><option value="basket">Корзины</option></select></div><div class="filter-field"><label for="filter-price">Цена категории</label><select id="filter-price"><option value="all">Любая цена</option><option value="1900">От 1 900 ₽</option><option value="2900">От 2 900 ₽</option><option value="4500">От 4 500 ₽</option><option value="5900">От 5 900 ₽</option></select></div><div class="filter-field"><label for="filter-color">Палитра</label><select id="filter-color"><option value="all">Любая</option><option value="confirm">Согласуется с флористом</option></select></div></div><p class="filter-note">Указаны минимальные цены категорий из задания. Точные состав, оттенок, размер и итоговая стоимость подтверждаются при оформлении.</p></section>
+  <section class="page-intro"><p class="eyebrow">КОЛЛЕКЦИЯ «ЛЕПЕСТОК 24»</p><h1>Каталог<br><em>букетов.</em></h1><p class="lead">24 готовых букета с фиксированным составом, количеством цветов и цветовой палитрой. Выберите подходящий вариант и оформите заказ.</p></section>
+  <section class="catalog-toolbar" aria-label="Фильтры каталога"><div class="catalog-toolbar-heading"><p class="eyebrow">НАЙДИТЕ СВОЙ БУКЕТ</p><span id="catalog-count" aria-live="polite">24 букета</span></div><div class="filters">
+      <div class="filter-field">
+        <label for="filter-category">Категория</label>
+        <select id="filter-category">
+          <option value="all">Все категории</option>
+          <option value="mama">Маме</option>
+          <option value="mono">Моно</option>
+          <option value="author">Авторские</option>
+          <option value="basket">Корзины</option>
+        </select>
+      </div>
+      <div class="filter-field filter-field-price-range">
+        <label>Цена, ₽</label>
+        <div class="price-range-inputs">
+          <input class="filter-price-input" id="filter-price-min" type="number" min="0" step="100" inputmode="numeric" placeholder="От" aria-label="Минимальная цена в рублях">
+          <span aria-hidden="true">—</span>
+          <input class="filter-price-input" id="filter-price-max" type="number" min="0" step="100" inputmode="numeric" placeholder="До" aria-label="Максимальная цена в рублях">
+        </div>
+      </div>
+      <div class="filter-field">
+        <label for="filter-color">Цвет</label>
+        <select id="filter-color">
+          <option value="all">Любой цвет</option>
+          <option value="pink">Розовый</option>
+          <option value="white">Белый</option>
+          <option value="red">Красный</option>
+          <option value="yellow">Жёлтый</option>
+          <option value="peach">Персиковый</option>
+          <option value="purple">Фиолетовый</option>
+          <option value="orange">Оранжевый</option>
+          <option value="mix">Разноцветный</option>
+        </select>
+      </div>
+    </div>
+    <p class="filter-note">У каждого букета фиксированы состав, количество стеблей и палитра. Указанная цена относится к готовому букету.</p></section>
   <div class="product-grid catalog-grid" id="catalog-grid">
-    <article class="product-card catalog-product" data-category="mama" data-price="2900" data-color="confirm" data-sku="B-01">
-          <div class="product-image-wrap"><div class="image-placeholder product-image"><span>место для картинки</span><small>Букет B-01</small></div><span class="sku-badge">B-01</span></div>
-          <div class="product-card-body"><div class="product-meta"><span>МАМЕ</span><span>АРТИКУЛ</span></div><h2>Букет «Маме» B-01</h2><p class="product-description">Состав уточняется с флористом перед заказом.</p><div class="product-specs"><span>Размер: <strong>по согласованию</strong></span><span>Палитра: <strong>по согласованию</strong></span></div><div class="product-bottom"><strong>от 2 900 ₽</strong><a class="button button-small" href="delivery.html?item_id=B-01" data-order-start>Заказать <span aria-hidden="true">↗</span></a></div></div>
-        </article>
-<article class="product-card catalog-product" data-category="mama" data-price="2900" data-color="confirm" data-sku="B-02">
-          <div class="product-image-wrap"><div class="image-placeholder product-image"><span>место для картинки</span><small>Букет B-02</small></div><span class="sku-badge">B-02</span></div>
-          <div class="product-card-body"><div class="product-meta"><span>МАМЕ</span><span>АРТИКУЛ</span></div><h2>Букет «Маме» B-02</h2><p class="product-description">Состав уточняется с флористом перед заказом.</p><div class="product-specs"><span>Размер: <strong>по согласованию</strong></span><span>Палитра: <strong>по согласованию</strong></span></div><div class="product-bottom"><strong>от 2 900 ₽</strong><a class="button button-small" href="delivery.html?item_id=B-02" data-order-start>Заказать <span aria-hidden="true">↗</span></a></div></div>
-        </article>
-<article class="product-card catalog-product" data-category="mama" data-price="2900" data-color="confirm" data-sku="B-03">
-          <div class="product-image-wrap"><div class="image-placeholder product-image"><span>место для картинки</span><small>Букет B-03</small></div><span class="sku-badge">B-03</span></div>
-          <div class="product-card-body"><div class="product-meta"><span>МАМЕ</span><span>АРТИКУЛ</span></div><h2>Букет «Маме» B-03</h2><p class="product-description">Состав уточняется с флористом перед заказом.</p><div class="product-specs"><span>Размер: <strong>по согласованию</strong></span><span>Палитра: <strong>по согласованию</strong></span></div><div class="product-bottom"><strong>от 2 900 ₽</strong><a class="button button-small" href="delivery.html?item_id=B-03" data-order-start>Заказать <span aria-hidden="true">↗</span></a></div></div>
-        </article>
-<article class="product-card catalog-product" data-category="mama" data-price="2900" data-color="confirm" data-sku="B-04">
-          <div class="product-image-wrap"><div class="image-placeholder product-image"><span>место для картинки</span><small>Букет B-04</small></div><span class="sku-badge">B-04</span></div>
-          <div class="product-card-body"><div class="product-meta"><span>МАМЕ</span><span>АРТИКУЛ</span></div><h2>Букет «Маме» B-04</h2><p class="product-description">Состав уточняется с флористом перед заказом.</p><div class="product-specs"><span>Размер: <strong>по согласованию</strong></span><span>Палитра: <strong>по согласованию</strong></span></div><div class="product-bottom"><strong>от 2 900 ₽</strong><a class="button button-small" href="delivery.html?item_id=B-04" data-order-start>Заказать <span aria-hidden="true">↗</span></a></div></div>
-        </article>
-<article class="product-card catalog-product" data-category="mama" data-price="2900" data-color="confirm" data-sku="B-05">
-          <div class="product-image-wrap"><div class="image-placeholder product-image"><span>место для картинки</span><small>Букет B-05</small></div><span class="sku-badge">B-05</span></div>
-          <div class="product-card-body"><div class="product-meta"><span>МАМЕ</span><span>АРТИКУЛ</span></div><h2>Букет «Маме» B-05</h2><p class="product-description">Состав уточняется с флористом перед заказом.</p><div class="product-specs"><span>Размер: <strong>по согласованию</strong></span><span>Палитра: <strong>по согласованию</strong></span></div><div class="product-bottom"><strong>от 2 900 ₽</strong><a class="button button-small" href="delivery.html?item_id=B-05" data-order-start>Заказать <span aria-hidden="true">↗</span></a></div></div>
-        </article>
-<article class="product-card catalog-product" data-category="mama" data-price="2900" data-color="confirm" data-sku="B-06">
-          <div class="product-image-wrap"><div class="image-placeholder product-image"><span>место для картинки</span><small>Букет B-06</small></div><span class="sku-badge">B-06</span></div>
-          <div class="product-card-body"><div class="product-meta"><span>МАМЕ</span><span>АРТИКУЛ</span></div><h2>Букет «Маме» B-06</h2><p class="product-description">Состав уточняется с флористом перед заказом.</p><div class="product-specs"><span>Размер: <strong>по согласованию</strong></span><span>Палитра: <strong>по согласованию</strong></span></div><div class="product-bottom"><strong>от 2 900 ₽</strong><a class="button button-small" href="delivery.html?item_id=B-06" data-order-start>Заказать <span aria-hidden="true">↗</span></a></div></div>
-        </article>
-<article class="product-card catalog-product" data-category="mono" data-price="1900" data-color="confirm" data-sku="B-07">
-          <div class="product-image-wrap"><div class="image-placeholder product-image"><span>место для картинки</span><small>Букет B-07</small></div><span class="sku-badge">B-07</span></div>
-          <div class="product-card-body"><div class="product-meta"><span>МОНО</span><span>АРТИКУЛ</span></div><h2>Букет «Моно» B-07</h2><p class="product-description">Состав уточняется с флористом перед заказом.</p><div class="product-specs"><span>Размер: <strong>по согласованию</strong></span><span>Палитра: <strong>по согласованию</strong></span></div><div class="product-bottom"><strong>от 1 900 ₽</strong><a class="button button-small" href="delivery.html?item_id=B-07" data-order-start>Заказать <span aria-hidden="true">↗</span></a></div></div>
-        </article>
-<article class="product-card catalog-product" data-category="mono" data-price="1900" data-color="confirm" data-sku="B-08">
-          <div class="product-image-wrap"><div class="image-placeholder product-image"><span>место для картинки</span><small>Букет B-08</small></div><span class="sku-badge">B-08</span></div>
-          <div class="product-card-body"><div class="product-meta"><span>МОНО</span><span>АРТИКУЛ</span></div><h2>Букет «Моно» B-08</h2><p class="product-description">Состав уточняется с флористом перед заказом.</p><div class="product-specs"><span>Размер: <strong>по согласованию</strong></span><span>Палитра: <strong>по согласованию</strong></span></div><div class="product-bottom"><strong>от 1 900 ₽</strong><a class="button button-small" href="delivery.html?item_id=B-08" data-order-start>Заказать <span aria-hidden="true">↗</span></a></div></div>
-        </article>
-<article class="product-card catalog-product" data-category="mono" data-price="1900" data-color="confirm" data-sku="B-09">
-          <div class="product-image-wrap"><div class="image-placeholder product-image"><span>место для картинки</span><small>Букет B-09</small></div><span class="sku-badge">B-09</span></div>
-          <div class="product-card-body"><div class="product-meta"><span>МОНО</span><span>АРТИКУЛ</span></div><h2>Букет «Моно» B-09</h2><p class="product-description">Состав уточняется с флористом перед заказом.</p><div class="product-specs"><span>Размер: <strong>по согласованию</strong></span><span>Палитра: <strong>по согласованию</strong></span></div><div class="product-bottom"><strong>от 1 900 ₽</strong><a class="button button-small" href="delivery.html?item_id=B-09" data-order-start>Заказать <span aria-hidden="true">↗</span></a></div></div>
-        </article>
-<article class="product-card catalog-product" data-category="mono" data-price="1900" data-color="confirm" data-sku="B-10">
-          <div class="product-image-wrap"><div class="image-placeholder product-image"><span>место для картинки</span><small>Букет B-10</small></div><span class="sku-badge">B-10</span></div>
-          <div class="product-card-body"><div class="product-meta"><span>МОНО</span><span>АРТИКУЛ</span></div><h2>Букет «Моно» B-10</h2><p class="product-description">Состав уточняется с флористом перед заказом.</p><div class="product-specs"><span>Размер: <strong>по согласованию</strong></span><span>Палитра: <strong>по согласованию</strong></span></div><div class="product-bottom"><strong>от 1 900 ₽</strong><a class="button button-small" href="delivery.html?item_id=B-10" data-order-start>Заказать <span aria-hidden="true">↗</span></a></div></div>
-        </article>
-<article class="product-card catalog-product" data-category="mono" data-price="1900" data-color="confirm" data-sku="B-11">
-          <div class="product-image-wrap"><div class="image-placeholder product-image"><span>место для картинки</span><small>Букет B-11</small></div><span class="sku-badge">B-11</span></div>
-          <div class="product-card-body"><div class="product-meta"><span>МОНО</span><span>АРТИКУЛ</span></div><h2>Букет «Моно» B-11</h2><p class="product-description">Состав уточняется с флористом перед заказом.</p><div class="product-specs"><span>Размер: <strong>по согласованию</strong></span><span>Палитра: <strong>по согласованию</strong></span></div><div class="product-bottom"><strong>от 1 900 ₽</strong><a class="button button-small" href="delivery.html?item_id=B-11" data-order-start>Заказать <span aria-hidden="true">↗</span></a></div></div>
-        </article>
-<article class="product-card catalog-product" data-category="mono" data-price="1900" data-color="confirm" data-sku="B-12">
-          <div class="product-image-wrap"><div class="image-placeholder product-image"><span>место для картинки</span><small>Букет B-12</small></div><span class="sku-badge">B-12</span></div>
-          <div class="product-card-body"><div class="product-meta"><span>МОНО</span><span>АРТИКУЛ</span></div><h2>Букет «Моно» B-12</h2><p class="product-description">Состав уточняется с флористом перед заказом.</p><div class="product-specs"><span>Размер: <strong>по согласованию</strong></span><span>Палитра: <strong>по согласованию</strong></span></div><div class="product-bottom"><strong>от 1 900 ₽</strong><a class="button button-small" href="delivery.html?item_id=B-12" data-order-start>Заказать <span aria-hidden="true">↗</span></a></div></div>
-        </article>
-<article class="product-card catalog-product" data-category="author" data-price="4500" data-color="confirm" data-sku="B-13">
-          <div class="product-image-wrap"><div class="image-placeholder product-image"><span>место для картинки</span><small>Букет B-13</small></div><span class="sku-badge">B-13</span></div>
-          <div class="product-card-body"><div class="product-meta"><span>АВТОРСКИЕ</span><span>АРТИКУЛ</span></div><h2>Букет «Авторские» B-13</h2><p class="product-description">Состав уточняется с флористом перед заказом.</p><div class="product-specs"><span>Размер: <strong>по согласованию</strong></span><span>Палитра: <strong>по согласованию</strong></span></div><div class="product-bottom"><strong>от 4 500 ₽</strong><a class="button button-small" href="delivery.html?item_id=B-13" data-order-start>Заказать <span aria-hidden="true">↗</span></a></div></div>
-        </article>
-<article class="product-card catalog-product" data-category="author" data-price="4500" data-color="confirm" data-sku="B-14">
-          <div class="product-image-wrap"><div class="image-placeholder product-image"><span>место для картинки</span><small>Букет B-14</small></div><span class="sku-badge">B-14</span></div>
-          <div class="product-card-body"><div class="product-meta"><span>АВТОРСКИЕ</span><span>АРТИКУЛ</span></div><h2>Букет «Авторские» B-14</h2><p class="product-description">Состав уточняется с флористом перед заказом.</p><div class="product-specs"><span>Размер: <strong>по согласованию</strong></span><span>Палитра: <strong>по согласованию</strong></span></div><div class="product-bottom"><strong>от 4 500 ₽</strong><a class="button button-small" href="delivery.html?item_id=B-14" data-order-start>Заказать <span aria-hidden="true">↗</span></a></div></div>
-        </article>
-<article class="product-card catalog-product" data-category="author" data-price="4500" data-color="confirm" data-sku="B-15">
-          <div class="product-image-wrap"><div class="image-placeholder product-image"><span>место для картинки</span><small>Букет B-15</small></div><span class="sku-badge">B-15</span></div>
-          <div class="product-card-body"><div class="product-meta"><span>АВТОРСКИЕ</span><span>АРТИКУЛ</span></div><h2>Букет «Авторские» B-15</h2><p class="product-description">Состав уточняется с флористом перед заказом.</p><div class="product-specs"><span>Размер: <strong>по согласованию</strong></span><span>Палитра: <strong>по согласованию</strong></span></div><div class="product-bottom"><strong>от 4 500 ₽</strong><a class="button button-small" href="delivery.html?item_id=B-15" data-order-start>Заказать <span aria-hidden="true">↗</span></a></div></div>
-        </article>
-<article class="product-card catalog-product" data-category="author" data-price="4500" data-color="confirm" data-sku="B-16">
-          <div class="product-image-wrap"><div class="image-placeholder product-image"><span>место для картинки</span><small>Букет B-16</small></div><span class="sku-badge">B-16</span></div>
-          <div class="product-card-body"><div class="product-meta"><span>АВТОРСКИЕ</span><span>АРТИКУЛ</span></div><h2>Букет «Авторские» B-16</h2><p class="product-description">Состав уточняется с флористом перед заказом.</p><div class="product-specs"><span>Размер: <strong>по согласованию</strong></span><span>Палитра: <strong>по согласованию</strong></span></div><div class="product-bottom"><strong>от 4 500 ₽</strong><a class="button button-small" href="delivery.html?item_id=B-16" data-order-start>Заказать <span aria-hidden="true">↗</span></a></div></div>
-        </article>
-<article class="product-card catalog-product" data-category="author" data-price="4500" data-color="confirm" data-sku="B-17">
-          <div class="product-image-wrap"><div class="image-placeholder product-image"><span>место для картинки</span><small>Букет B-17</small></div><span class="sku-badge">B-17</span></div>
-          <div class="product-card-body"><div class="product-meta"><span>АВТОРСКИЕ</span><span>АРТИКУЛ</span></div><h2>Букет «Авторские» B-17</h2><p class="product-description">Состав уточняется с флористом перед заказом.</p><div class="product-specs"><span>Размер: <strong>по согласованию</strong></span><span>Палитра: <strong>по согласованию</strong></span></div><div class="product-bottom"><strong>от 4 500 ₽</strong><a class="button button-small" href="delivery.html?item_id=B-17" data-order-start>Заказать <span aria-hidden="true">↗</span></a></div></div>
-        </article>
-<article class="product-card catalog-product" data-category="author" data-price="4500" data-color="confirm" data-sku="B-18">
-          <div class="product-image-wrap"><div class="image-placeholder product-image"><span>место для картинки</span><small>Букет B-18</small></div><span class="sku-badge">B-18</span></div>
-          <div class="product-card-body"><div class="product-meta"><span>АВТОРСКИЕ</span><span>АРТИКУЛ</span></div><h2>Букет «Авторские» B-18</h2><p class="product-description">Состав уточняется с флористом перед заказом.</p><div class="product-specs"><span>Размер: <strong>по согласованию</strong></span><span>Палитра: <strong>по согласованию</strong></span></div><div class="product-bottom"><strong>от 4 500 ₽</strong><a class="button button-small" href="delivery.html?item_id=B-18" data-order-start>Заказать <span aria-hidden="true">↗</span></a></div></div>
-        </article>
-<article class="product-card catalog-product" data-category="basket" data-price="5900" data-color="confirm" data-sku="B-19">
-          <div class="product-image-wrap"><div class="image-placeholder product-image"><span>место для картинки</span><small>Букет B-19</small></div><span class="sku-badge">B-19</span></div>
-          <div class="product-card-body"><div class="product-meta"><span>КОРЗИНЫ</span><span>АРТИКУЛ</span></div><h2>Букет «Корзины» B-19</h2><p class="product-description">Состав уточняется с флористом перед заказом.</p><div class="product-specs"><span>Размер: <strong>по согласованию</strong></span><span>Палитра: <strong>по согласованию</strong></span></div><div class="product-bottom"><strong>от 5 900 ₽</strong><a class="button button-small" href="delivery.html?item_id=B-19" data-order-start>Заказать <span aria-hidden="true">↗</span></a></div></div>
-        </article>
-<article class="product-card catalog-product" data-category="basket" data-price="5900" data-color="confirm" data-sku="B-20">
-          <div class="product-image-wrap"><div class="image-placeholder product-image"><span>место для картинки</span><small>Букет B-20</small></div><span class="sku-badge">B-20</span></div>
-          <div class="product-card-body"><div class="product-meta"><span>КОРЗИНЫ</span><span>АРТИКУЛ</span></div><h2>Букет «Корзины» B-20</h2><p class="product-description">Состав уточняется с флористом перед заказом.</p><div class="product-specs"><span>Размер: <strong>по согласованию</strong></span><span>Палитра: <strong>по согласованию</strong></span></div><div class="product-bottom"><strong>от 5 900 ₽</strong><a class="button button-small" href="delivery.html?item_id=B-20" data-order-start>Заказать <span aria-hidden="true">↗</span></a></div></div>
-        </article>
-<article class="product-card catalog-product" data-category="basket" data-price="5900" data-color="confirm" data-sku="B-21">
-          <div class="product-image-wrap"><div class="image-placeholder product-image"><span>место для картинки</span><small>Букет B-21</small></div><span class="sku-badge">B-21</span></div>
-          <div class="product-card-body"><div class="product-meta"><span>КОРЗИНЫ</span><span>АРТИКУЛ</span></div><h2>Букет «Корзины» B-21</h2><p class="product-description">Состав уточняется с флористом перед заказом.</p><div class="product-specs"><span>Размер: <strong>по согласованию</strong></span><span>Палитра: <strong>по согласованию</strong></span></div><div class="product-bottom"><strong>от 5 900 ₽</strong><a class="button button-small" href="delivery.html?item_id=B-21" data-order-start>Заказать <span aria-hidden="true">↗</span></a></div></div>
-        </article>
-<article class="product-card catalog-product" data-category="basket" data-price="5900" data-color="confirm" data-sku="B-22">
-          <div class="product-image-wrap"><div class="image-placeholder product-image"><span>место для картинки</span><small>Букет B-22</small></div><span class="sku-badge">B-22</span></div>
-          <div class="product-card-body"><div class="product-meta"><span>КОРЗИНЫ</span><span>АРТИКУЛ</span></div><h2>Букет «Корзины» B-22</h2><p class="product-description">Состав уточняется с флористом перед заказом.</p><div class="product-specs"><span>Размер: <strong>по согласованию</strong></span><span>Палитра: <strong>по согласованию</strong></span></div><div class="product-bottom"><strong>от 5 900 ₽</strong><a class="button button-small" href="delivery.html?item_id=B-22" data-order-start>Заказать <span aria-hidden="true">↗</span></a></div></div>
-        </article>
-<article class="product-card catalog-product" data-category="basket" data-price="5900" data-color="confirm" data-sku="B-23">
-          <div class="product-image-wrap"><div class="image-placeholder product-image"><span>место для картинки</span><small>Букет B-23</small></div><span class="sku-badge">B-23</span></div>
-          <div class="product-card-body"><div class="product-meta"><span>КОРЗИНЫ</span><span>АРТИКУЛ</span></div><h2>Букет «Корзины» B-23</h2><p class="product-description">Состав уточняется с флористом перед заказом.</p><div class="product-specs"><span>Размер: <strong>по согласованию</strong></span><span>Палитра: <strong>по согласованию</strong></span></div><div class="product-bottom"><strong>от 5 900 ₽</strong><a class="button button-small" href="delivery.html?item_id=B-23" data-order-start>Заказать <span aria-hidden="true">↗</span></a></div></div>
-        </article>
-<article class="product-card catalog-product" data-category="basket" data-price="5900" data-color="confirm" data-sku="B-24">
-          <div class="product-image-wrap"><div class="image-placeholder product-image"><span>место для картинки</span><small>Букет B-24</small></div><span class="sku-badge">B-24</span></div>
-          <div class="product-card-body"><div class="product-meta"><span>КОРЗИНЫ</span><span>АРТИКУЛ</span></div><h2>Букет «Корзины» B-24</h2><p class="product-description">Состав уточняется с флористом перед заказом.</p><div class="product-specs"><span>Размер: <strong>по согласованию</strong></span><span>Палитра: <strong>по согласованию</strong></span></div><div class="product-bottom"><strong>от 5 900 ₽</strong><a class="button button-small" href="delivery.html?item_id=B-24" data-order-start>Заказать <span aria-hidden="true">↗</span></a></div></div>
-        </article>
+    <article class="product-card catalog-product" data-category="mama" data-price="2900" data-colors="pink white mix" data-sku="B-01">
+      <div class="product-image-wrap"><div class="image-placeholder product-image"><span>место для картинки</span><small>Букет B-01</small></div><span class="sku-badge">B-01</span></div>
+      <div class="product-card-body">
+        <div class="product-meta"><span>МАМЕ</span><span>АРТИКУЛ</span></div>
+        <h2>Нежность для мамы</h2>
+        <p class="product-description">7 розовых роз и 3 белые альстромерии.</p>
+        <div class="product-specs"><span>Количество цветов: <strong>10 шт.</strong></span><span>Цветовая палитра: <strong>Розовый и белый</strong></span></div>
+        <div class="product-bottom"><strong>2 900 ₽</strong><a class="button button-small" href="delivery.html?item_id=B-01" data-order-start>Заказать <span aria-hidden="true">↗</span></a></div>
+      </div>
+    </article>
+    <article class="product-card catalog-product" data-category="mama" data-price="2900" data-colors="white" data-sku="B-02">
+      <div class="product-image-wrap"><div class="image-placeholder product-image"><span>место для картинки</span><small>Букет B-02</small></div><span class="sku-badge">B-02</span></div>
+      <div class="product-card-body">
+        <div class="product-meta"><span>МАМЕ</span><span>АРТИКУЛ</span></div>
+        <h2>Белый сад</h2>
+        <p class="product-description">5 белых роз и 5 белых кустовых хризантем.</p>
+        <div class="product-specs"><span>Количество цветов: <strong>10 шт.</strong></span><span>Цветовая палитра: <strong>Белый</strong></span></div>
+        <div class="product-bottom"><strong>2 900 ₽</strong><a class="button button-small" href="delivery.html?item_id=B-02" data-order-start>Заказать <span aria-hidden="true">↗</span></a></div>
+      </div>
+    </article>
+    <article class="product-card catalog-product" data-category="mama" data-price="2900" data-colors="peach white mix" data-sku="B-03">
+      <div class="product-image-wrap"><div class="image-placeholder product-image"><span>место для картинки</span><small>Букет B-03</small></div><span class="sku-badge">B-03</span></div>
+      <div class="product-card-body">
+        <div class="product-meta"><span>МАМЕ</span><span>АРТИКУЛ</span></div>
+        <h2>Персиковое утро</h2>
+        <p class="product-description">6 персиковых роз и 4 белые эустомы.</p>
+        <div class="product-specs"><span>Количество цветов: <strong>10 шт.</strong></span><span>Цветовая палитра: <strong>Персиковый и белый</strong></span></div>
+        <div class="product-bottom"><strong>2 900 ₽</strong><a class="button button-small" href="delivery.html?item_id=B-03" data-order-start>Заказать <span aria-hidden="true">↗</span></a></div>
+      </div>
+    </article>
+    <article class="product-card catalog-product" data-category="mama" data-price="2900" data-colors="pink" data-sku="B-04">
+      <div class="product-image-wrap"><div class="image-placeholder product-image"><span>место для картинки</span><small>Букет B-04</small></div><span class="sku-badge">B-04</span></div>
+      <div class="product-card-body">
+        <div class="product-meta"><span>МАМЕ</span><span>АРТИКУЛ</span></div>
+        <h2>Розовый рассвет</h2>
+        <p class="product-description">9 розовых роз и 3 розовых диантуса.</p>
+        <div class="product-specs"><span>Количество цветов: <strong>12 шт.</strong></span><span>Цветовая палитра: <strong>Розовый</strong></span></div>
+        <div class="product-bottom"><strong>2 900 ₽</strong><a class="button button-small" href="delivery.html?item_id=B-04" data-order-start>Заказать <span aria-hidden="true">↗</span></a></div>
+      </div>
+    </article>
+    <article class="product-card catalog-product" data-category="mama" data-price="2900" data-colors="yellow orange mix" data-sku="B-05">
+      <div class="product-image-wrap"><div class="image-placeholder product-image"><span>место для картинки</span><small>Букет B-05</small></div><span class="sku-badge">B-05</span></div>
+      <div class="product-card-body">
+        <div class="product-meta"><span>МАМЕ</span><span>АРТИКУЛ</span></div>
+        <h2>Солнечный день</h2>
+        <p class="product-description">5 жёлтых роз и 5 оранжевых альстромерий.</p>
+        <div class="product-specs"><span>Количество цветов: <strong>10 шт.</strong></span><span>Цветовая палитра: <strong>Жёлтый и оранжевый</strong></span></div>
+        <div class="product-bottom"><strong>2 900 ₽</strong><a class="button button-small" href="delivery.html?item_id=B-05" data-order-start>Заказать <span aria-hidden="true">↗</span></a></div>
+      </div>
+    </article>
+    <article class="product-card catalog-product" data-category="mama" data-price="2900" data-colors="white purple mix" data-sku="B-06">
+      <div class="product-image-wrap"><div class="image-placeholder product-image"><span>место для картинки</span><small>Букет B-06</small></div><span class="sku-badge">B-06</span></div>
+      <div class="product-card-body">
+        <div class="product-meta"><span>МАМЕ</span><span>АРТИКУЛ</span></div>
+        <h2>Лавандовая нежность</h2>
+        <p class="product-description">7 белых эустом и 3 фиолетовые альстромерии.</p>
+        <div class="product-specs"><span>Количество цветов: <strong>10 шт.</strong></span><span>Цветовая палитра: <strong>Белый и фиолетовый</strong></span></div>
+        <div class="product-bottom"><strong>2 900 ₽</strong><a class="button button-small" href="delivery.html?item_id=B-06" data-order-start>Заказать <span aria-hidden="true">↗</span></a></div>
+      </div>
+    </article>
+    <article class="product-card catalog-product" data-category="mono" data-price="1900" data-colors="red" data-sku="B-07">
+      <div class="product-image-wrap"><div class="image-placeholder product-image"><span>место для картинки</span><small>Букет B-07</small></div><span class="sku-badge">B-07</span></div>
+      <div class="product-card-body">
+        <div class="product-meta"><span>МОНО</span><span>АРТИКУЛ</span></div>
+        <h2>Красная классика</h2>
+        <p class="product-description">9 красных роз одного сорта.</p>
+        <div class="product-specs"><span>Количество цветов: <strong>9 шт.</strong></span><span>Цветовая палитра: <strong>Красный</strong></span></div>
+        <div class="product-bottom"><strong>1 900 ₽</strong><a class="button button-small" href="delivery.html?item_id=B-07" data-order-start>Заказать <span aria-hidden="true">↗</span></a></div>
+      </div>
+    </article>
+    <article class="product-card catalog-product" data-category="mono" data-price="1900" data-colors="white" data-sku="B-08">
+      <div class="product-image-wrap"><div class="image-placeholder product-image"><span>место для картинки</span><small>Букет B-08</small></div><span class="sku-badge">B-08</span></div>
+      <div class="product-card-body">
+        <div class="product-meta"><span>МОНО</span><span>АРТИКУЛ</span></div>
+        <h2>Белая классика</h2>
+        <p class="product-description">7 белых роз одного сорта.</p>
+        <div class="product-specs"><span>Количество цветов: <strong>7 шт.</strong></span><span>Цветовая палитра: <strong>Белый</strong></span></div>
+        <div class="product-bottom"><strong>1 900 ₽</strong><a class="button button-small" href="delivery.html?item_id=B-08" data-order-start>Заказать <span aria-hidden="true">↗</span></a></div>
+      </div>
+    </article>
+    <article class="product-card catalog-product" data-category="mono" data-price="1900" data-colors="pink" data-sku="B-09">
+      <div class="product-image-wrap"><div class="image-placeholder product-image"><span>место для картинки</span><small>Букет B-09</small></div><span class="sku-badge">B-09</span></div>
+      <div class="product-card-body">
+        <div class="product-meta"><span>МОНО</span><span>АРТИКУЛ</span></div>
+        <h2>Розовый моно-букет</h2>
+        <p class="product-description">11 розовых роз одного сорта.</p>
+        <div class="product-specs"><span>Количество цветов: <strong>11 шт.</strong></span><span>Цветовая палитра: <strong>Розовый</strong></span></div>
+        <div class="product-bottom"><strong>1 900 ₽</strong><a class="button button-small" href="delivery.html?item_id=B-09" data-order-start>Заказать <span aria-hidden="true">↗</span></a></div>
+      </div>
+    </article>
+    <article class="product-card catalog-product" data-category="mono" data-price="1900" data-colors="yellow" data-sku="B-10">
+      <div class="product-image-wrap"><div class="image-placeholder product-image"><span>место для картинки</span><small>Букет B-10</small></div><span class="sku-badge">B-10</span></div>
+      <div class="product-card-body">
+        <div class="product-meta"><span>МОНО</span><span>АРТИКУЛ</span></div>
+        <h2>Жёлтое солнце</h2>
+        <p class="product-description">9 жёлтых хризантем одного сорта.</p>
+        <div class="product-specs"><span>Количество цветов: <strong>9 шт.</strong></span><span>Цветовая палитра: <strong>Жёлтый</strong></span></div>
+        <div class="product-bottom"><strong>1 900 ₽</strong><a class="button button-small" href="delivery.html?item_id=B-10" data-order-start>Заказать <span aria-hidden="true">↗</span></a></div>
+      </div>
+    </article>
+    <article class="product-card catalog-product" data-category="mono" data-price="1900" data-colors="purple" data-sku="B-11">
+      <div class="product-image-wrap"><div class="image-placeholder product-image"><span>место для картинки</span><small>Букет B-11</small></div><span class="sku-badge">B-11</span></div>
+      <div class="product-card-body">
+        <div class="product-meta"><span>МОНО</span><span>АРТИКУЛ</span></div>
+        <h2>Фиолетовый акцент</h2>
+        <p class="product-description">9 фиолетовых альстромерий одного сорта.</p>
+        <div class="product-specs"><span>Количество цветов: <strong>9 шт.</strong></span><span>Цветовая палитра: <strong>Фиолетовый</strong></span></div>
+        <div class="product-bottom"><strong>1 900 ₽</strong><a class="button button-small" href="delivery.html?item_id=B-11" data-order-start>Заказать <span aria-hidden="true">↗</span></a></div>
+      </div>
+    </article>
+    <article class="product-card catalog-product" data-category="mono" data-price="1900" data-colors="peach" data-sku="B-12">
+      <div class="product-image-wrap"><div class="image-placeholder product-image"><span>место для картинки</span><small>Букет B-12</small></div><span class="sku-badge">B-12</span></div>
+      <div class="product-card-body">
+        <div class="product-meta"><span>МОНО</span><span>АРТИКУЛ</span></div>
+        <h2>Персиковый комплимент</h2>
+        <p class="product-description">11 персиковых диантусов одного сорта.</p>
+        <div class="product-specs"><span>Количество цветов: <strong>11 шт.</strong></span><span>Цветовая палитра: <strong>Персиковый</strong></span></div>
+        <div class="product-bottom"><strong>1 900 ₽</strong><a class="button button-small" href="delivery.html?item_id=B-12" data-order-start>Заказать <span aria-hidden="true">↗</span></a></div>
+      </div>
+    </article>
+    <article class="product-card catalog-product" data-category="author" data-price="4500" data-colors="pink white mix" data-sku="B-13">
+      <div class="product-image-wrap"><div class="image-placeholder product-image"><span>место для картинки</span><small>Букет B-13</small></div><span class="sku-badge">B-13</span></div>
+      <div class="product-card-body">
+        <div class="product-meta"><span>АВТОРСКИЕ</span><span>АРТИКУЛ</span></div>
+        <h2>Розовый акварель</h2>
+        <p class="product-description">9 розовых роз и 6 белых кустовых роз.</p>
+        <div class="product-specs"><span>Количество цветов: <strong>15 шт.</strong></span><span>Цветовая палитра: <strong>Розовый и белый</strong></span></div>
+        <div class="product-bottom"><strong>4 500 ₽</strong><a class="button button-small" href="delivery.html?item_id=B-13" data-order-start>Заказать <span aria-hidden="true">↗</span></a></div>
+      </div>
+    </article>
+    <article class="product-card catalog-product" data-category="author" data-price="4500" data-colors="red white mix" data-sku="B-14">
+      <div class="product-image-wrap"><div class="image-placeholder product-image"><span>место для картинки</span><small>Букет B-14</small></div><span class="sku-badge">B-14</span></div>
+      <div class="product-card-body">
+        <div class="product-meta"><span>АВТОРСКИЕ</span><span>АРТИКУЛ</span></div>
+        <h2>Контраст чувств</h2>
+        <p class="product-description">8 красных роз и 7 белых эустом.</p>
+        <div class="product-specs"><span>Количество цветов: <strong>15 шт.</strong></span><span>Цветовая палитра: <strong>Красный и белый</strong></span></div>
+        <div class="product-bottom"><strong>4 500 ₽</strong><a class="button button-small" href="delivery.html?item_id=B-14" data-order-start>Заказать <span aria-hidden="true">↗</span></a></div>
+      </div>
+    </article>
+    <article class="product-card catalog-product" data-category="author" data-price="4500" data-colors="orange yellow mix" data-sku="B-15">
+      <div class="product-image-wrap"><div class="image-placeholder product-image"><span>место для картинки</span><small>Букет B-15</small></div><span class="sku-badge">B-15</span></div>
+      <div class="product-card-body">
+        <div class="product-meta"><span>АВТОРСКИЕ</span><span>АРТИКУЛ</span></div>
+        <h2>Тёплый спектр</h2>
+        <p class="product-description">7 оранжевых гербер, 6 жёлтых роз и 3 ветки солидаго.</p>
+        <div class="product-specs"><span>Количество цветов: <strong>16 шт.</strong></span><span>Цветовая палитра: <strong>Оранжевый и жёлтый</strong></span></div>
+        <div class="product-bottom"><strong>4 500 ₽</strong><a class="button button-small" href="delivery.html?item_id=B-15" data-order-start>Заказать <span aria-hidden="true">↗</span></a></div>
+      </div>
+    </article>
+    <article class="product-card catalog-product" data-category="author" data-price="4500" data-colors="purple white mix" data-sku="B-16">
+      <div class="product-image-wrap"><div class="image-placeholder product-image"><span>место для картинки</span><small>Букет B-16</small></div><span class="sku-badge">B-16</span></div>
+      <div class="product-card-body">
+        <div class="product-meta"><span>АВТОРСКИЕ</span><span>АРТИКУЛ</span></div>
+        <h2>Лавандовый шёлк</h2>
+        <p class="product-description">8 фиолетовых эустом и 7 белых роз.</p>
+        <div class="product-specs"><span>Количество цветов: <strong>15 шт.</strong></span><span>Цветовая палитра: <strong>Фиолетовый и белый</strong></span></div>
+        <div class="product-bottom"><strong>4 500 ₽</strong><a class="button button-small" href="delivery.html?item_id=B-16" data-order-start>Заказать <span aria-hidden="true">↗</span></a></div>
+      </div>
+    </article>
+    <article class="product-card catalog-product" data-category="author" data-price="4500" data-colors="peach pink mix" data-sku="B-17">
+      <div class="product-image-wrap"><div class="image-placeholder product-image"><span>место для картинки</span><small>Букет B-17</small></div><span class="sku-badge">B-17</span></div>
+      <div class="product-card-body">
+        <div class="product-meta"><span>АВТОРСКИЕ</span><span>АРТИКУЛ</span></div>
+        <h2>Персиковая история</h2>
+        <p class="product-description">10 персиковых роз и 5 розовых диантусов.</p>
+        <div class="product-specs"><span>Количество цветов: <strong>15 шт.</strong></span><span>Цветовая палитра: <strong>Персиковый и розовый</strong></span></div>
+        <div class="product-bottom"><strong>4 500 ₽</strong><a class="button button-small" href="delivery.html?item_id=B-17" data-order-start>Заказать <span aria-hidden="true">↗</span></a></div>
+      </div>
+    </article>
+    <article class="product-card catalog-product" data-category="author" data-price="4500" data-colors="white purple mix" data-sku="B-18">
+      <div class="product-image-wrap"><div class="image-placeholder product-image"><span>место для картинки</span><small>Букет B-18</small></div><span class="sku-badge">B-18</span></div>
+      <div class="product-card-body">
+        <div class="product-meta"><span>АВТОРСКИЕ</span><span>АРТИКУЛ</span></div>
+        <h2>Вечерний сад</h2>
+        <p class="product-description">9 белых лилий и 6 фиолетовых альстромерий.</p>
+        <div class="product-specs"><span>Количество цветов: <strong>15 шт.</strong></span><span>Цветовая палитра: <strong>Белый и фиолетовый</strong></span></div>
+        <div class="product-bottom"><strong>4 500 ₽</strong><a class="button button-small" href="delivery.html?item_id=B-18" data-order-start>Заказать <span aria-hidden="true">↗</span></a></div>
+      </div>
+    </article>
+    <article class="product-card catalog-product" data-category="basket" data-price="5900" data-colors="pink white mix" data-sku="B-19">
+      <div class="product-image-wrap"><div class="image-placeholder product-image"><span>место для картинки</span><small>Букет B-19</small></div><span class="sku-badge">B-19</span></div>
+      <div class="product-card-body">
+        <div class="product-meta"><span>КОРЗИНЫ</span><span>АРТИКУЛ</span></div>
+        <h2>Розовое облако</h2>
+        <p class="product-description">12 розовых роз, 8 белых хризантем и 5 белых эустом.</p>
+        <div class="product-specs"><span>Количество цветов: <strong>25 шт.</strong></span><span>Цветовая палитра: <strong>Розовый и белый</strong></span></div>
+        <div class="product-bottom"><strong>5 900 ₽</strong><a class="button button-small" href="delivery.html?item_id=B-19" data-order-start>Заказать <span aria-hidden="true">↗</span></a></div>
+      </div>
+    </article>
+    <article class="product-card catalog-product" data-category="basket" data-price="5900" data-colors="red white mix" data-sku="B-20">
+      <div class="product-image-wrap"><div class="image-placeholder product-image"><span>место для картинки</span><small>Букет B-20</small></div><span class="sku-badge">B-20</span></div>
+      <div class="product-card-body">
+        <div class="product-meta"><span>КОРЗИНЫ</span><span>АРТИКУЛ</span></div>
+        <h2>Алый бархат</h2>
+        <p class="product-description">15 красных роз и 10 белых кустовых хризантем.</p>
+        <div class="product-specs"><span>Количество цветов: <strong>25 шт.</strong></span><span>Цветовая палитра: <strong>Красный и белый</strong></span></div>
+        <div class="product-bottom"><strong>5 900 ₽</strong><a class="button button-small" href="delivery.html?item_id=B-20" data-order-start>Заказать <span aria-hidden="true">↗</span></a></div>
+      </div>
+    </article>
+    <article class="product-card catalog-product" data-category="basket" data-price="5900" data-colors="yellow orange mix" data-sku="B-21">
+      <div class="product-image-wrap"><div class="image-placeholder product-image"><span>место для картинки</span><small>Букет B-21</small></div><span class="sku-badge">B-21</span></div>
+      <div class="product-card-body">
+        <div class="product-meta"><span>КОРЗИНЫ</span><span>АРТИКУЛ</span></div>
+        <h2>Солнечная корзина</h2>
+        <p class="product-description">12 жёлтых роз, 10 оранжевых гербер и 5 веток солидаго.</p>
+        <div class="product-specs"><span>Количество цветов: <strong>27 шт.</strong></span><span>Цветовая палитра: <strong>Жёлтый и оранжевый</strong></span></div>
+        <div class="product-bottom"><strong>5 900 ₽</strong><a class="button button-small" href="delivery.html?item_id=B-21" data-order-start>Заказать <span aria-hidden="true">↗</span></a></div>
+      </div>
+    </article>
+    <article class="product-card catalog-product" data-category="basket" data-price="5900" data-colors="purple white mix" data-sku="B-22">
+      <div class="product-image-wrap"><div class="image-placeholder product-image"><span>место для картинки</span><small>Букет B-22</small></div><span class="sku-badge">B-22</span></div>
+      <div class="product-card-body">
+        <div class="product-meta"><span>КОРЗИНЫ</span><span>АРТИКУЛ</span></div>
+        <h2>Сиреневый вечер</h2>
+        <p class="product-description">12 фиолетовых альстромерий, 10 белых роз и 5 белых эустом.</p>
+        <div class="product-specs"><span>Количество цветов: <strong>27 шт.</strong></span><span>Цветовая палитра: <strong>Фиолетовый и белый</strong></span></div>
+        <div class="product-bottom"><strong>5 900 ₽</strong><a class="button button-small" href="delivery.html?item_id=B-22" data-order-start>Заказать <span aria-hidden="true">↗</span></a></div>
+      </div>
+    </article>
+    <article class="product-card catalog-product" data-category="basket" data-price="5900" data-colors="peach white pink mix" data-sku="B-23">
+      <div class="product-image-wrap"><div class="image-placeholder product-image"><span>место для картинки</span><small>Букет B-23</small></div><span class="sku-badge">B-23</span></div>
+      <div class="product-card-body">
+        <div class="product-meta"><span>КОРЗИНЫ</span><span>АРТИКУЛ</span></div>
+        <h2>Персиковое настроение</h2>
+        <p class="product-description">12 персиковых роз, 10 белых хризантем и 5 розовых альстромерий.</p>
+        <div class="product-specs"><span>Количество цветов: <strong>27 шт.</strong></span><span>Цветовая палитра: <strong>Персиковый, белый и розовый</strong></span></div>
+        <div class="product-bottom"><strong>5 900 ₽</strong><a class="button button-small" href="delivery.html?item_id=B-23" data-order-start>Заказать <span aria-hidden="true">↗</span></a></div>
+      </div>
+    </article>
+    <article class="product-card catalog-product" data-category="basket" data-price="5900" data-colors="pink peach white mix" data-sku="B-24">
+      <div class="product-image-wrap"><div class="image-placeholder product-image"><span>место для картинки</span><small>Букет B-24</small></div><span class="sku-badge">B-24</span></div>
+      <div class="product-card-body">
+        <div class="product-meta"><span>КОРЗИНЫ</span><span>АРТИКУЛ</span></div>
+        <h2>Пастельный микс</h2>
+        <p class="product-description">15 пастельных роз (розовые, персиковые и белые) и 10 белых эустом.</p>
+        <div class="product-specs"><span>Количество цветов: <strong>25 шт.</strong></span><span>Цветовая палитра: <strong>Розовый, персиковый и белый</strong></span></div>
+        <div class="product-bottom"><strong>5 900 ₽</strong><a class="button button-small" href="delivery.html?item_id=B-24" data-order-start>Заказать <span aria-hidden="true">↗</span></a></div>
+      </div>
+    </article>
   </div>
   <p id="catalog-empty" class="empty-state" hidden>По выбранным фильтрам букетов не найдено. Измените условия поиска.</p>
   <section class="catalog-bottom-cta"><div><p class="eyebrow">НЕ НАШЛИ ПОДХОДЯЩИЙ?</p><h2>Соберите свой вариант</h2><p>В конструкторе можно выбрать цветы, количество стеблей и упаковку.</p></div><a class="button" href="builder.html">Открыть конструктор <span aria-hidden="true">↗</span></a></section>

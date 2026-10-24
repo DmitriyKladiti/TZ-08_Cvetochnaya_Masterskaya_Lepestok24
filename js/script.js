@@ -189,12 +189,13 @@ const rubles = (value) => new Intl.NumberFormat("ru-RU", {
   maximumFractionDigits: 0
 }).format(value);
 
-// Каталог: фильтрация по категории, цене и цвету.
+// Каталог: совместная фильтрация по категории, диапазону цены и цвету.
 const catalogGrid = document.querySelector("#catalog-grid");
 
 if (catalogGrid) {
   const categoryFilter = document.querySelector("#filter-category");
-  const priceFilter = document.querySelector("#filter-price");
+  const minPriceFilter = document.querySelector("#filter-price-min");
+  const maxPriceFilter = document.querySelector("#filter-price-max");
   const colorFilter = document.querySelector("#filter-color");
   const cards = Array.from(
     catalogGrid.querySelectorAll(".catalog-product")
@@ -204,32 +205,44 @@ if (catalogGrid) {
 
   const filterCatalog = () => {
     const category = categoryFilter.value;
-    const price = priceFilter.value === "all"
+    const minPrice = minPriceFilter.value.trim() === ""
       ? 0
-      : Number(priceFilter.value);
+      : Math.max(0, Number(minPriceFilter.value));
+    const maxPrice = maxPriceFilter.value.trim() === ""
+      ? Number.POSITIVE_INFINITY
+      : Math.max(0, Number(maxPriceFilter.value));
     const color = colorFilter.value;
+    const priceRangeValid = minPrice <= maxPrice;
 
     let visible = 0;
 
     cards.forEach((card) => {
-      const matches =
+      const cardPrice = Number(card.dataset.price);
+      const cardColors = (card.dataset.colors || "").split(/\s+/);
+      const matches = priceRangeValid &&
         (category === "all" || card.dataset.category === category) &&
-        Number(card.dataset.price) >= price &&
-        (color === "all" || card.dataset.color === color);
+        cardPrice >= minPrice &&
+        cardPrice <= maxPrice &&
+        (color === "all" || cardColors.includes(color));
 
       card.hidden = !matches;
-
       if (matches) visible += 1;
     });
 
     count.textContent = `${visible} ${
       visible === 1 ? "букет" : "букетов"
     }`;
-
     empty.hidden = visible !== 0;
+
+    if (!priceRangeValid) {
+      empty.textContent = "Минимальная цена не может быть больше максимальной. Измените диапазон.";
+    } else {
+      empty.textContent = "По выбранным фильтрам букетов не найдено. Измените условия поиска.";
+    }
   };
 
-  [categoryFilter, priceFilter, colorFilter].forEach((control) => {
+  [categoryFilter, minPriceFilter, maxPriceFilter, colorFilter].forEach((control) => {
+    control.addEventListener("input", filterCatalog);
     control.addEventListener("change", filterCatalog);
   });
 
