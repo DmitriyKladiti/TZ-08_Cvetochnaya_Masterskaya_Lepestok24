@@ -512,6 +512,7 @@ if (orderForm) {
   const currentPriceNode = document.querySelector("#current-order-price");
   const promoStatus = document.querySelector("#promo-status");
   const deliveryZoneForm = document.querySelector("#delivery-zone-form");
+  const deliveryZoneDisplay = document.querySelector("#delivery-zone-display");
 
   const tomorrow = new Date();
   tomorrow.setHours(0, 0, 0, 0);
@@ -561,8 +562,25 @@ if (orderForm) {
       : selectedFlow.item_description;
   }
 
-  if (flowMatchesPage && selectedFlow.delivery_zone && deliveryZoneForm) {
-    deliveryZoneForm.value = selectedFlow.delivery_zone;
+  const deliveryZoneNames = {
+    center: "Центр",
+    north: "Северный район",
+    south: "Южный район",
+    suburb: "Пригород",
+    pickup: "Самовывоз"
+  };
+
+  if (deliveryZoneForm) {
+    deliveryZoneForm.value = flowMatchesPage
+      ? (selectedFlow.delivery_zone || "center")
+      : "center";
+  }
+
+  if (deliveryZoneDisplay) {
+    const zone = flowMatchesPage
+      ? (selectedFlow.delivery_zone || "center")
+      : "";
+    deliveryZoneDisplay.value = deliveryZoneNames[zone] || "Место доставки не указано";
   }
 
   const promoFromUrl = params.get("promo_code");
@@ -575,17 +593,27 @@ if (orderForm) {
     MAMA10: 0.10
   };
 
-  const getDeliveryFee = (discountedItemPrice) => {
-    if (!deliveryZoneForm) {
-      return Math.max(0, Number(selectedFlow?.delivery_fee) || 0);
-    }
+  const deliveryZoneFees = {
+    center: 300,
+    north: 450,
+    south: 450,
+    suburb: 700,
+    pickup: 0
+  };
 
-    if (deliveryZoneForm.value === "pickup" || baseItemPrice >= 6000) {
+  const getDeliveryFee = () => {
+    const zone = deliveryZoneForm?.value || selectedFlow?.delivery_zone || "center";
+
+    // Условия бесплатной доставки такие же, как на предыдущем шаге.
+    if (zone === "pickup" || baseItemPrice >= 6000) {
       return 0;
     }
 
-    const selectedOption = deliveryZoneForm.selectedOptions[0];
-    return Math.max(0, Number(selectedOption?.dataset.fee) || 0);
+    if (Object.prototype.hasOwnProperty.call(deliveryZoneFees, zone)) {
+      return deliveryZoneFees[zone];
+    }
+
+    return Math.max(0, Number(selectedFlow?.delivery_fee) || 0);
   };
 
   const updateOrderPrice = () => {
@@ -593,7 +621,7 @@ if (orderForm) {
     const discountRate = promoDefinitions[normalizedCode] || 0;
     const discount = Math.round(baseItemPrice * discountRate);
     const finalItemPrice = Math.max(0, baseItemPrice - discount);
-    const deliveryFee = getDeliveryFee(finalItemPrice);
+    const deliveryFee = getDeliveryFee();
     const currentTotal = finalItemPrice + deliveryFee;
 
     if (basePriceNode) basePriceNode.value = rubles(baseItemPrice);
@@ -631,10 +659,6 @@ if (orderForm) {
   if (promoInput) {
     promoInput.addEventListener("input", updateOrderPrice);
     promoInput.addEventListener("change", updateOrderPrice);
-  }
-
-  if (deliveryZoneForm) {
-    deliveryZoneForm.addEventListener("change", updateOrderPrice);
   }
 
   updateOrderPrice();
