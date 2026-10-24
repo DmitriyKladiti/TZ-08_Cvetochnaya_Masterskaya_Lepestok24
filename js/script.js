@@ -58,7 +58,8 @@ const readOrderFlowFromUrl = () => {
     item_price: itemPrice,
     item_description: (pageParams.get("item_description") || "").slice(0, 500),
     delivery_zone: pageParams.get("delivery_zone") || "center",
-    delivery_fee: Math.max(0, Number(pageParams.get("delivery_fee")) || 0)
+    delivery_fee: Math.max(0, Number(pageParams.get("delivery_fee")) || 0),
+    promo_code: (pageParams.get("promo_code") || "").slice(0, 20)
   };
 };
 
@@ -70,7 +71,8 @@ const orderFlowUrl = (page, flow) => {
     item_price: String(Number(flow.item_price) || 0),
     item_description: flow.item_description || "",
     delivery_zone: flow.delivery_zone || "center",
-    delivery_fee: String(Number(flow.delivery_fee) || 0)
+    delivery_fee: String(Number(flow.delivery_fee) || 0),
+    promo_code: flow.promo_code || ""
   });
 
   return `${page}?${params.toString()}`;
@@ -492,16 +494,24 @@ if (deliveryZone && orderSum) {
   }
 }
 
-// Форма заказа: проверка данных без отправки на сервер.
+// Форма заказа: перенос выбранного товара, расчёт промокода и проверка данных.
 const orderForm = document.querySelector("#order-form");
 
 if (orderForm) {
   const dateInput = document.querySelector("#delivery-date");
-  const itemSelect = document.querySelector("#item-id");
+  const itemIdInput = document.querySelector("#item-id");
+  const itemNameInput = document.querySelector("#selected-item-name");
+  const itemDescriptionNode = document.querySelector("#selected-item-description");
   const orderStatus = document.querySelector("#order-status");
   const phoneInput = document.querySelector("#customer-phone");
   const emailInput = document.querySelector("#customer-email");
   const promoInput = document.querySelector("#promo-input");
+  const basePriceNode = document.querySelector("#base-item-price");
+  const deliveryPriceNode = document.querySelector("#delivery-cost-form");
+  const discountNode = document.querySelector("#promo-discount");
+  const currentPriceNode = document.querySelector("#current-order-price");
+  const promoStatus = document.querySelector("#promo-status");
+  const deliveryZoneForm = document.querySelector("#delivery-zone-form");
 
   const tomorrow = new Date();
   tomorrow.setHours(0, 0, 0, 0);
@@ -515,101 +525,119 @@ if (orderForm) {
   const params = new URLSearchParams(window.location.search);
   const itemFromUrl = params.get("item_id");
   const selectedFlow = currentFlow || readOrderFlow();
-
-  if (
-    itemFromUrl &&
-    Array.from(itemSelect.options).some(
-      (option) => option.value === itemFromUrl
-    )
-  ) {
-    itemSelect.value = itemFromUrl;
-  }
-
-  if (
+  const flowMatchesPage = Boolean(
     selectedFlow &&
     selectedFlow.step === "order" &&
     selectedFlow.item_id === itemFromUrl
-  ) {
-    itemSelect.value = selectedFlow.item_id;
+  );
 
-    const deliveryZoneForm =
-      document.querySelector("#delivery-zone-form");
+  const selectedItemId = flowMatchesPage
+    ? selectedFlow.item_id
+    : (itemFromUrl || "");
+  const baseItemPrice = Math.max(0, Number(
+    flowMatchesPage ? selectedFlow.item_price : params.get("item_price")
+  ) || 0);
 
-    if (deliveryZoneForm && selectedFlow.delivery_zone) {
-      deliveryZoneForm.value = selectedFlow.delivery_zone;
+  const itemNames = {
+    OFFICE: "Цветы в офис"
+  };
+
+  if (itemIdInput) itemIdInput.value = selectedItemId;
+
+  if (itemNameInput) {
+    if (selectedItemId === "CUSTOM") {
+      itemNameInput.value = "CUSTOM — мой букет";
+    } else if (flowMatchesPage && selectedFlow.item_name) {
+      itemNameInput.value = `${selectedFlow.item_name} (${selectedItemId})`;
+    } else {
+      itemNameInput.value = `${itemNames[selectedItemId] || `Букет ${selectedItemId}`} (${selectedItemId})`;
     }
+  }
+
+  if (flowMatchesPage && selectedFlow.item_description && itemDescriptionNode) {
+    itemDescriptionNode.hidden = false;
+    itemDescriptionNode.textContent = selectedItemId === "CUSTOM"
+      ? `Состав вашего букета: ${selectedFlow.item_description}.`
+      : selectedFlow.item_description;
+  }
+
+  if (flowMatchesPage && selectedFlow.delivery_zone && deliveryZoneForm) {
+    deliveryZoneForm.value = selectedFlow.delivery_zone;
   }
 
   const promoFromUrl = params.get("promo_code");
-
-  if (promoFromUrl) {
-    promoInput.value = promoFromUrl;
+  if (promoInput) {
+    promoInput.value = promoFromUrl || (flowMatchesPage ? selectedFlow.promo_code : "") || "";
   }
 
-  try {
-    const savedCustom = sessionStorage.getItem(
-      "lepestok24_custom_bouquet"
-    );
+  // MAMA10 даёт скидку 10% на стоимость букета; доставка в скидку не входит.
+  const promoDefinitions = {
+    MAMA10: 0.10
+  };
 
-    if (
-      savedCustom &&
-      selectedFlow &&
-      selectedFlow.item_id === "CUSTOM" &&
-      itemFromUrl === "CUSTOM"
-    ) {
-      const custom = JSON.parse(savedCustom);
+  const getDeliveryFee = (discountedItemPrice) => {
+    if (!deliveryZoneForm) {
+      return Math.max(0, Number(selectedFlow?.delivery_fee) || 0);
+    }
 
-      if (custom.item_id === "CUSTOM") {
-        itemSelect.value = "CUSTOM";
+    if (deliveryZoneForm.value === "pickup" || baseItemPrice >= 6000) {
+      return 0;
+    }
 
-        let summary = document.querySelector("#custom-bouquet-summary");
+    const selectedOption = deliveryZoneForm.selectedOptions[0];
+    return Math.max(0, Number(selectedOption?.dataset.fee) || 0);
+  };
 
-        if (!summary) {
-          summary = document.createElement("p");
-          summary.id = "custom-bouquet-summary";
-          summary.className = "notice";
-          summary.style.margin = "0 0 18px";
+  const updateOrderPrice = () => {
+    const normalizedCode = promoInput ? promoInput.value.trim().toUpperCase() : "";
+    const discountRate = promoDefinitions[normalizedCode] || 0;
+    const discount = Math.round(baseItemPrice * discountRate);
+    const finalItemPrice = Math.max(0, baseItemPrice - discount);
+    const deliveryFee = getDeliveryFee(finalItemPrice);
+    const currentTotal = finalItemPrice + deliveryFee;
 
-          orderForm.querySelector(".form-section-spaced")
-            .insertAdjacentElement("beforebegin", summary);
-        }
+    if (basePriceNode) basePriceNode.value = rubles(baseItemPrice);
+    if (deliveryPriceNode) deliveryPriceNode.value = rubles(deliveryFee);
+    if (discountNode) discountNode.value = discount ? `−${rubles(discount)}` : rubles(0);
+    if (currentPriceNode) currentPriceNode.value = rubles(currentTotal);
 
-        summary.textContent =
-          `Ваш состав из конструктора: ${custom.description}. ` +
-          `Расчётная цена цветов и упаковки: ${rubles(custom.price)}.`;
+    if (promoStatus) {
+      if (!normalizedCode) {
+        promoStatus.textContent = "Промокод не указан. Скидка не применяется.";
+      } else if (discountRate > 0) {
+        promoStatus.textContent = `Промокод ${normalizedCode} применён: скидка 10% на букет.`;
+      } else {
+        promoStatus.textContent = "Такой промокод не найден. Проверьте написание; цена рассчитана без скидки.";
       }
     }
-  } catch (_) {
-    // Не блокируем форму, если sessionStorage недоступен.
-  }
 
-  // Восстанавливаем состав индивидуального букета из URL или сессии.
-  if (
-    selectedFlow &&
-    selectedFlow.step === "order" &&
-    selectedFlow.item_id === "CUSTOM"
-  ) {
-    itemSelect.value = "CUSTOM";
+    if (flowMatchesPage) {
+      selectedFlow.promo_code = normalizedCode;
+      selectedFlow.promo_discount = discount;
+      selectedFlow.current_total = currentTotal;
+      selectedFlow.delivery_zone = deliveryZoneForm?.value || selectedFlow.delivery_zone || "center";
+      selectedFlow.delivery_fee = deliveryFee;
+      saveOrderFlow(selectedFlow);
 
-    let summary = document.querySelector("#custom-bouquet-summary");
-
-    if (!summary) {
-      summary = document.createElement("p");
-      summary.id = "custom-bouquet-summary";
-      summary.className = "notice";
-      summary.style.margin = "0 0 18px";
-
-      orderForm.querySelector(".form-section-spaced")
-        .insertAdjacentElement("beforebegin", summary);
+      // В URL остаётся резерв для случая, если браузер не хранит sessionStorage.
+      try {
+        window.history.replaceState(null, "", orderFlowUrl("contacts.html", selectedFlow));
+      } catch (_) {
+        // Некоторые локальные file://-сценарии запрещают менять URL через History API.
+      }
     }
+  };
 
-    summary.textContent =
-      `Ваш состав из конструктора: ${
-        selectedFlow.item_description || "состав сохранён в параметрах заказа"
-      }. Расчётная цена цветов и упаковки: ${
-        rubles(Number(selectedFlow.item_price) || 0)
-      }.`;
+  if (promoInput) {
+    promoInput.addEventListener("input", updateOrderPrice);
+    promoInput.addEventListener("change", updateOrderPrice);
   }
+
+  if (deliveryZoneForm) {
+    deliveryZoneForm.addEventListener("change", updateOrderPrice);
+  }
+
+  updateOrderPrice();
 
   orderForm.addEventListener("submit", (event) => {
     event.preventDefault();
@@ -633,9 +661,12 @@ if (orderForm) {
 
     if (!orderForm.reportValidity()) return;
 
+    const finalCode = promoInput.value.trim().toUpperCase();
+    const discountApplied = Boolean(promoDefinitions[finalCode]);
     orderStatus.textContent =
-      "Поля заполнены корректно. Сейчас форма находится " +
-      "в демонстрационном режиме: данные не отправлены. " +
+      `Поля заполнены корректно. Текущая цена заказа: ${currentPriceNode?.value || "не рассчитана"}. ` +
+      (discountApplied ? `Промокод ${finalCode} учтён. ` : "") +
+      "Сейчас форма находится в демонстрационном режиме: данные не отправлены. " +
       "После подключения приёмника заявок этот шаг будет заменён реальной отправкой.";
 
     orderStatus.classList.add("notice", "notice-warning");

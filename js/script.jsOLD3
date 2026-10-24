@@ -189,12 +189,13 @@ const rubles = (value) => new Intl.NumberFormat("ru-RU", {
   maximumFractionDigits: 0
 }).format(value);
 
-// Каталог: фильтрация по категории, цене и цвету.
+// Каталог: совместная фильтрация по категории, диапазону цены и цвету.
 const catalogGrid = document.querySelector("#catalog-grid");
 
 if (catalogGrid) {
   const categoryFilter = document.querySelector("#filter-category");
-  const priceFilter = document.querySelector("#filter-price");
+  const minPriceFilter = document.querySelector("#filter-price-min");
+  const maxPriceFilter = document.querySelector("#filter-price-max");
   const colorFilter = document.querySelector("#filter-color");
   const cards = Array.from(
     catalogGrid.querySelectorAll(".catalog-product")
@@ -204,32 +205,44 @@ if (catalogGrid) {
 
   const filterCatalog = () => {
     const category = categoryFilter.value;
-    const price = priceFilter.value === "all"
+    const minPrice = minPriceFilter.value.trim() === ""
       ? 0
-      : Number(priceFilter.value);
+      : Math.max(0, Number(minPriceFilter.value));
+    const maxPrice = maxPriceFilter.value.trim() === ""
+      ? Number.POSITIVE_INFINITY
+      : Math.max(0, Number(maxPriceFilter.value));
     const color = colorFilter.value;
+    const priceRangeValid = minPrice <= maxPrice;
 
     let visible = 0;
 
     cards.forEach((card) => {
-      const matches =
+      const cardPrice = Number(card.dataset.price);
+      const cardColors = (card.dataset.colors || "").split(/\s+/);
+      const matches = priceRangeValid &&
         (category === "all" || card.dataset.category === category) &&
-        Number(card.dataset.price) >= price &&
-        (color === "all" || card.dataset.color === color);
+        cardPrice >= minPrice &&
+        cardPrice <= maxPrice &&
+        (color === "all" || cardColors.includes(color));
 
       card.hidden = !matches;
-
       if (matches) visible += 1;
     });
 
     count.textContent = `${visible} ${
       visible === 1 ? "букет" : "букетов"
     }`;
-
     empty.hidden = visible !== 0;
+
+    if (!priceRangeValid) {
+      empty.textContent = "Минимальная цена не может быть больше максимальной. Измените диапазон.";
+    } else {
+      empty.textContent = "По выбранным фильтрам букетов не найдено. Измените условия поиска.";
+    }
   };
 
-  [categoryFilter, priceFilter, colorFilter].forEach((control) => {
+  [categoryFilter, minPriceFilter, maxPriceFilter, colorFilter].forEach((control) => {
+    control.addEventListener("input", filterCatalog);
     control.addEventListener("change", filterCatalog);
   });
 
@@ -665,4 +678,122 @@ if (thanksRequestId) {
   if (requestId && /^[A-Za-z0-9-]{1,60}$/.test(requestId)) {
     thanksRequestId.textContent = requestId;
   }
+}
+
+// Изображения букетов на главной и в каталоге.
+// Файлы размещаются в корневой папке flowers_img и называются по артикулу:
+// B-01.jpg, B-02.png и т. п. Если файл не найден, остаётся текущая заглушка.
+(() => {
+  const imageFolder = "flowers_img/";
+  const imageExtensions = [
+    ".jpg", ".jpeg", ".png", ".webp", ".avif",
+    ".JPG", ".JPEG", ".PNG", ".WEBP", ".AVIF", ""
+  ];
+  const validSku = /^B-\d{2}$/;
+
+  const addFlowerImage = (placeholder, sku) => {
+    if (!placeholder || !validSku.test(sku || "")) return;
+
+    // Не добавляем одно изображение повторно, если разметка будет расширена.
+    if (placeholder.querySelector(".flower-photo")) return;
+
+    const image = document.createElement("img");
+    image.className = "flower-photo";
+    image.alt = `Букет ${sku}`;
+    image.loading = "lazy";
+    image.decoding = "async";
+
+    let extensionIndex = 0;
+
+    const tryNextExtension = () => {
+      if (extensionIndex >= imageExtensions.length) {
+        image.remove();
+        return;
+      }
+
+      image.src = `${imageFolder}${sku}${imageExtensions[extensionIndex++]}`;
+    };
+
+    image.addEventListener("load", () => {
+      placeholder.classList.add("has-flower-image");
+    }, { once: true });
+
+    image.addEventListener("error", tryNextExtension);
+    placeholder.appendChild(image);
+    tryNextExtension();
+  };
+
+  // Каталог: артикул берётся из data-sku каждой карточки (B-01 ... B-24).
+  document.querySelectorAll(".catalog-product").forEach((card) => {
+    addFlowerImage(card.querySelector(".product-image"), card.dataset.sku);
+  });
+
+  // Главная: артикулы заданы у hero-блока, категорий и избранных букетов.
+  document.querySelectorAll(".page-index [data-image-id]").forEach((placeholder) => {
+    addFlowerImage(placeholder, placeholder.dataset.imageId);
+  });
+})();
+
+
+
+ // Случайная фотография букета на главной странице.
+const heroImage = document.querySelector("#hero-random-image");
+
+if (heroImage) {
+  const extensions = [".jpg", ".jpeg", ".png", ".webp", ".avif"];
+
+  // Перемешиваем все артикулы, чтобы выбирать случайный букет.
+  const bouquets = Array.from({ length: 24 }, (_, index) =>
+    `B-${String(index + 1).padStart(2, "0")}`
+  ).sort(() => Math.random() - 0.5);
+
+  // Ищем первую существующую и загружаемую фотографию.
+  const tryBouquet = (bouquetIndex) => {
+    if (bouquetIndex >= bouquets.length) {
+      // Фотографии не найдены — сохраняем заглушку.
+      return;
+    }
+
+    const bouquetCode = bouquets[bouquetIndex];
+    let extensionIndex = 0;
+
+    const tryExtension = () => {
+      if (extensionIndex >= extensions.length) {
+        // У этого букета нет подходящего изображения.
+        tryBouquet(bouquetIndex + 1);
+        return;
+      }
+
+      const imagePath =
+        `flowers_img/${bouquetCode}${extensions[extensionIndex]}`;
+
+      extensionIndex++;
+
+      const image = new Image();
+
+      image.onload = () => {
+        heroImage.style.backgroundImage =
+          `url("${imagePath}")`;
+        heroImage.style.backgroundSize = "cover";
+        heroImage.style.backgroundPosition = "center";
+
+        // Скрываем текст заглушки, когда фотография найдена.
+        heroImage.querySelectorAll("span, small").forEach((element) => {
+          element.style.display = "none";
+        });
+
+        heroImage.setAttribute(
+          "aria-label",
+          `Букет ${bouquetCode}`
+        );
+      };
+
+      image.onerror = tryExtension;
+      image.src = imagePath;
+    };
+
+    tryExtension();
+  };
+
+  tryBouquet(0);
 }
