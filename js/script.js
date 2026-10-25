@@ -1061,12 +1061,12 @@ if (orderForm) {
   };
 
   orderForm.addEventListener("submit", (event) => {
-    event.preventDefault();
     orderStatus.textContent = "";
 
     const phoneDigits = phoneInput.value.replace(/\D/g, "");
 
     if (phoneDigits.length !== 11 || !phoneDigits.startsWith("7")) {
+      event.preventDefault();
       orderStatus.textContent =
         "Проверьте телефон: укажите +7 и 10 цифр номера.";
 
@@ -1075,14 +1075,19 @@ if (orderForm) {
     }
 
     if (emailInput.value && !emailInput.validity.valid) {
+      event.preventDefault();
       orderStatus.textContent = "Проверьте формат e-mail.";
       emailInput.focus();
       return;
     }
 
-    if (!orderForm.reportValidity()) return;
+    if (!orderForm.reportValidity()) {
+      event.preventDefault();
+      return;
+    }
 
     if (!/^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec$/.test(orderForm.action) || orderForm.action !== appsScriptUrl) {
+      event.preventDefault();
       orderStatus.textContent = "Не удалось подключить приёмник заявок. Проверьте адрес Apps Script.";
       orderStatus.classList.remove("notice");
       orderStatus.classList.add("notice-warning");
@@ -1091,30 +1096,21 @@ if (orderForm) {
 
     fillSubmissionMetadata();
     if (!requestIdInput?.value) {
+      event.preventDefault();
       orderStatus.textContent = "Не удалось создать номер заявки. Обновите страницу и попробуйте ещё раз.";
       orderStatus.classList.add("notice-warning");
       return;
     }
 
-    orderStatus.textContent = `Данные передаются в приёмник заявок. Номер заявки: ${requestIdInput.value}.`;
+    orderStatus.textContent = `POST отправляется. Проверьте запись в таблице по номеру заявки: ${requestIdInput.value}.`;
     orderStatus.classList.remove("notice-warning");
     orderStatus.classList.add("notice");
     if (submitButton) submitButton.disabled = true;
     waitingForSheetResponse = Boolean(submissionFrame);
 
-    // Как в примере преподавателя: отправляем обычный POST в скрытый iframe,
-    // поэтому страница не уходит на JSON-ответ Apps Script.
-    try {
-      HTMLFormElement.prototype.submit.call(orderForm);
-    } catch (_) {
-      waitingForSheetResponse = false;
-      if (submitButton) submitButton.disabled = false;
-      orderStatus.textContent = "Не удалось отправить данные. Проверьте подключение и повторите попытку.";
-      orderStatus.classList.remove("notice");
-      orderStatus.classList.add("notice-warning");
-      return;
-    }
-
+    // Как в примере преподавателя, на корректном пути не отменяем submit:
+    // браузер отправляет обычный POST в скрытый iframe по action формы.
+    // Ответ Apps Script находится на другом домене и не читается из страницы.
     sendSubmitEventAndRedirect();
   });
 }
