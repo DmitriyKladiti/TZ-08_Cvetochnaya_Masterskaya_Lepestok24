@@ -466,7 +466,34 @@ if (builderForm) {
     };
 
     saveOrderFlow(flow);
-    window.location.href = orderFlowUrl("delivery.html", flow);
+
+    // GA4: фиксируем создание кастомного букета при успешном переходе к оформлению.
+    // Передаём только число стеблей, выбранный тип упаковки и итоговую цену.
+    const selectedWrap =
+      wrapInputs.find((input) => input.checked) || wrapInputs[0];
+    const deliveryUrl = orderFlowUrl("delivery.html", flow);
+    let navigationStarted = false;
+
+    const continueToDelivery = () => {
+      if (navigationStarted) return;
+      navigationStarted = true;
+      window.location.href = deliveryUrl;
+    };
+
+    if (typeof window.gtag === "function") {
+      window.gtag("event", "bouquet_build", {
+        stems_count: custom.stems,
+        wrap_type: selectedWrap.value,
+        total_price: custom.price,
+        event_callback: continueToDelivery,
+        event_timeout: 1000
+      });
+
+      // Не задерживаем переход, если callback GA4 не сработал.
+      window.setTimeout(continueToDelivery, 1200);
+    } else {
+      continueToDelivery();
+    }
   });
 
   updateBuilder();
