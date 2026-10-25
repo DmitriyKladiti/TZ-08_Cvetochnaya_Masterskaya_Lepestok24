@@ -1191,8 +1191,8 @@ document.addEventListener("click", (event) => {
 });
 
 // GA4: отслеживаем переходы в WhatsApp и Telegram в общем подвале
-// и на странице контактов. Событие отправляется на всех страницах,
-// где подключён этот script.js.
+// и на странице контактов. Соцссылки блока thanks-social отслеживаются
+// отдельным событием social_click, поэтому здесь их пропускаем.
 document.addEventListener("click", (event) => {
   const target = event.target;
   const messengerLink = target instanceof Element
@@ -1200,6 +1200,7 @@ document.addEventListener("click", (event) => {
     : null;
 
   if (!messengerLink) return;
+  if (messengerLink.closest(".thanks-social .social-links")) return;
 
   const declaredMessenger = (messengerLink.getAttribute("data-messenger") || "")
     .trim()
@@ -1244,5 +1245,26 @@ document.addEventListener("click", (event) => {
   // Передаём только тип мессенджера, не отправляя URL с возможными личными данными.
   window.gtag("event", "messenger_click", {
     messenger: messenger
+  });
+});
+
+// GA4: отслеживаем клики по соцсетям именно рядом с надписью
+// «Следите за мастерской» на странице thanks.html.
+// Параметр network содержит нормализованное название соцсети.
+document.addEventListener("click", (event) => {
+  const target = event.target;
+  const socialLink = target instanceof Element
+    ? target.closest(".thanks-social .social-links a[data-social-network]")
+    : null;
+
+  if (!socialLink || typeof window.gtag !== "function") return;
+
+  const network = (socialLink.dataset.socialNetwork || "").trim().toLowerCase();
+  const allowedNetworks = ["instagram", "vk", "telegram", "youtube"];
+
+  if (!allowedNetworks.includes(network)) return;
+
+  window.gtag("event", "social_click", {
+    network: network
   });
 });
