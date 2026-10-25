@@ -1248,23 +1248,56 @@ document.addEventListener("click", (event) => {
   });
 });
 
-// GA4: отслеживаем клики по соцсетям именно рядом с надписью
-// «Следите за мастерской» на странице thanks.html.
-// Параметр network содержит нормализованное название соцсети.
+// GA4: отслеживаем клики по соцсетям рядом с надписью
+// «Следите за мастерской» на thanks.html. Сеть определяется по адресу ссылки,
+// поэтому добавлять data-social-network в HTML не требуется.
 document.addEventListener("click", (event) => {
   const target = event.target;
   const socialLink = target instanceof Element
-    ? target.closest(".thanks-social .social-links a[data-social-network]")
+    ? target.closest(".thanks-social a[href]")
     : null;
 
   if (!socialLink || typeof window.gtag !== "function") return;
 
-  const network = (socialLink.dataset.socialNetwork || "").trim().toLowerCase();
-  const allowedNetworks = ["instagram", "vk", "telegram", "youtube"];
+  const declaredNetwork = (socialLink.getAttribute("data-social-network") || "")
+    .trim()
+    .toLowerCase();
+  const href = (socialLink.getAttribute("href") || "").trim();
+  let hostname = "";
 
-  if (!allowedNetworks.includes(network)) return;
+  try {
+    hostname = new URL(href, window.location.href).hostname.toLowerCase();
+  } catch (_) {
+    // Если адрес не является обычным URL, ниже попробуем определить сеть по тексту href.
+  }
 
+  let network = declaredNetwork;
+  if (!["instagram", "vk", "telegram", "youtube"].includes(network)) {
+    network = "";
+    if (hostname === "instagram.com" || hostname.endsWith(".instagram.com")) {
+      network = "instagram";
+    } else if (hostname === "vk.com" || hostname.endsWith(".vk.com") || hostname === "vkontakte.ru" || hostname.endsWith(".vkontakte.ru")) {
+      network = "vk";
+    } else if (
+      hostname === "t.me" || hostname.endsWith(".t.me") ||
+      hostname === "telegram.me" || hostname.endsWith(".telegram.me") ||
+      hostname === "telegram.org" || hostname.endsWith(".telegram.org") ||
+      /^tg:/i.test(href)
+    ) {
+      network = "telegram";
+    } else if (
+      hostname === "youtube.com" || hostname.endsWith(".youtube.com") ||
+      hostname === "youtu.be" || hostname.endsWith(".youtu.be")
+    ) {
+      network = "youtube";
+    }
+  }
+
+  if (!network) return;
+
+  // Отправляем название сети, но не URL ссылки.
   window.gtag("event", "social_click", {
-    network: network
+    network: network,
+    transport_type: "beacon"
   });
 });
