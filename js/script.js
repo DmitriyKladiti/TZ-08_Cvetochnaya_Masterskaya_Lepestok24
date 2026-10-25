@@ -209,13 +209,11 @@ document.addEventListener("click", (event) => {
   };
 
   if (typeof window.gtag === "function") {
+    // Отправляем только три требуемых параметра: артикул букета, валюту и цену.
+    const catalogItemId = (card?.dataset.sku || flow.item_id || itemId).trim();
+
     window.gtag("event", "select_item", {
-      items: [{
-        item_id: flow.item_id,
-        item_name: flow.item_name,
-        price: itemPrice,
-        quantity: 1
-      }],
+      item_id: catalogItemId,
       currency: "RUB",
       value: itemPrice,
       event_callback: continueToDelivery,
