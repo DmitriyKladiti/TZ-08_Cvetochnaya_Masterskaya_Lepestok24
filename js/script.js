@@ -984,23 +984,43 @@ if (orderForm) {
 const copyPromoButton = document.querySelector("#copy-promo");
 
 if (copyPromoButton) {
-  const promoCode = document.querySelector("#promo-code").textContent.trim();
+  const promoCodeNode = document.querySelector("#promo-code");
+  const promoCode = promoCodeNode ? promoCodeNode.textContent.trim() : "";
   const status = document.querySelector("#promo-status");
 
   copyPromoButton.addEventListener("click", async () => {
+    if (!promoCode) return;
+
     try {
       await navigator.clipboard.writeText(promoCode);
-      status.textContent = "Промокод скопирован.";
+      if (status) status.textContent = "Промокод скопирован.";
+
+      // GA4: отправляем promo_copy только после успешного копирования.
+      // Значение promo_code содержит скопированный код (например, MAMA10).
+      if (typeof window.gtag === "function") {
+        window.gtag("event", "promo_copy", {
+          promo_code: promoCode
+        });
+      }
     } catch (_) {
-      const range = document.createRange();
-      range.selectNodeContents(document.querySelector("#promo-code"));
+      // Если копирование недоступно, выделяем код для ручного копирования.
+      // Событие promo_copy не отправляем, так как успешное копирование
+      // браузером в этом случае не подтверждено.
+      if (promoCodeNode) {
+        const range = document.createRange();
+        range.selectNodeContents(promoCodeNode);
 
-      const selection = window.getSelection();
-      selection.removeAllRanges();
-      selection.addRange(range);
+        const selection = window.getSelection();
+        if (selection) {
+          selection.removeAllRanges();
+          selection.addRange(range);
+        }
+      }
 
-      status.textContent =
-        "Выделите код и скопируйте его вручную: Ctrl+C.";
+      if (status) {
+        status.textContent =
+          "Выделите код и скопируйте его вручную: Ctrl+C.";
+      }
     }
   });
 }
