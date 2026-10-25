@@ -197,7 +197,36 @@ document.addEventListener("click", (event) => {
   };
 
   saveOrderFlow(flow);
-  window.location.href = orderFlowUrl("delivery.html", flow);
+
+  // GA4: select_item — выбранный букет из каталога перед переходом к оформлению.
+  // Ждём отправки события, чтобы переход на другую страницу не прервал аналитику.
+  const deliveryUrl = orderFlowUrl("delivery.html", flow);
+  let navigationStarted = false;
+  const continueToDelivery = () => {
+    if (navigationStarted) return;
+    navigationStarted = true;
+    window.location.href = deliveryUrl;
+  };
+
+  if (typeof window.gtag === "function") {
+    window.gtag("event", "select_item", {
+      items: [{
+        item_id: flow.item_id,
+        item_name: flow.item_name,
+        price: itemPrice,
+        quantity: 1
+      }],
+      currency: "RUB",
+      value: itemPrice,
+      event_callback: continueToDelivery,
+      event_timeout: 1000
+    });
+
+    // Резервный переход, если callback GA4 не вызовется.
+    window.setTimeout(continueToDelivery, 1200);
+  } else {
+    continueToDelivery();
+  }
 });
 
 const rubles = (value) => new Intl.NumberFormat("ru-RU", {
