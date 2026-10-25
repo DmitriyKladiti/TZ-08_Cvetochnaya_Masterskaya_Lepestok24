@@ -1155,3 +1155,37 @@ if (heroImage) {
 
   tryBouquet(0);
 }
+
+// GA4: отслеживаем клики по телефону и e-mail в общей шапке, подвале
+// и карточке контактов. Работает на всех страницах, где подключён script.js.
+document.addEventListener("click", (event) => {
+  const target = event.target;
+  const contactLink = target instanceof Element
+    ? target.closest('a[href^="tel:"], a[href^="mailto:"]')
+    : null;
+
+  if (!contactLink) return;
+
+  const href = (contactLink.getAttribute("href") || "").trim().toLowerCase();
+  const contactType = href.startsWith("tel:")
+    ? "phone"
+    : href.startsWith("mailto:") ? "email" : "";
+
+  if (!contactType || typeof window.gtag !== "function") return;
+
+  // Дополнительный параметр помогает отличать одинаковые ссылки по месту клика.
+  let contactLocation = "other";
+  if (contactLink.closest(".topline, .site-header")) {
+    contactLocation = "header";
+  } else if (contactLink.closest(".site-footer")) {
+    contactLocation = "footer";
+  } else if (contactLink.closest(".contact-info-card, .contact-aside")) {
+    contactLocation = "contacts";
+  }
+
+  // Не отменяем стандартное действие ссылки: телефон и почта открываются как обычно.
+  window.gtag("event", "contact_click", {
+    contact_type: contactType,
+    contact_location: contactLocation
+  });
+});
