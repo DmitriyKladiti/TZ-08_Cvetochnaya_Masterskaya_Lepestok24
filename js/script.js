@@ -709,7 +709,7 @@ if (orderForm) {
   const requestIdInput = document.querySelector("#request-id");
   const submissionFrame = document.querySelector("#submission-frame");
   const submitButton = orderForm.querySelector('button[type="submit"]');
-  const appsScriptUrl = "https://script.google.com/macros/s/AKfycbwZjoOCdqw3cbsyumcgGQiNL-1saOmwRYZiNNA4m7JvGO8IHIb8kunj9n4Wd_KaVaq2/exec";
+  const appsScriptUrl = "https://script.google.com/macros/s/AKfycbxS1yiz1n1DzOjywuznQppKWzlEukkMOpUxgygjkgreeQRWbrdqFwvxxdVSZ7bzYeG0MA/exec";
   let waitingForSheetResponse = false;
   let redirectAfterSheetResponse = null;
   let sheetResponseFallbackTimer = null;
