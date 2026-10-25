@@ -1189,3 +1189,60 @@ document.addEventListener("click", (event) => {
     contact_location: contactLocation
   });
 });
+
+// GA4: отслеживаем переходы в WhatsApp и Telegram в общем подвале
+// и на странице контактов. Событие отправляется на всех страницах,
+// где подключён этот script.js.
+document.addEventListener("click", (event) => {
+  const target = event.target;
+  const messengerLink = target instanceof Element
+    ? target.closest('a[href], [data-messenger]')
+    : null;
+
+  if (!messengerLink) return;
+
+  const declaredMessenger = (messengerLink.getAttribute("data-messenger") || "")
+    .trim()
+    .toLowerCase();
+  const href = (messengerLink.getAttribute("href") || "").trim();
+  let hostname = "";
+
+  if (href) {
+    try {
+      hostname = new URL(href, window.location.href).hostname.toLowerCase();
+    } catch (_) {
+      // Если адрес нестандартный (например, tg://), ниже проверим сам href.
+    }
+  }
+
+  let messenger = "";
+  if (declaredMessenger === "whatsapp" || declaredMessenger === "wa") {
+    messenger = "whatsapp";
+  } else if (declaredMessenger === "telegram" || declaredMessenger === "tg") {
+    messenger = "telegram";
+  } else if (
+    hostname === "wa.me" ||
+    hostname === "whatsapp.com" ||
+    hostname.endsWith(".whatsapp.com") ||
+    /(^|\/)\/wa\.me([/:?#]|$)/i.test(href)
+  ) {
+    messenger = "whatsapp";
+  } else if (
+    hostname === "t.me" ||
+    hostname.endsWith(".t.me") ||
+    hostname === "telegram.me" ||
+    hostname.endsWith(".telegram.me") ||
+    hostname === "telegram.org" ||
+    hostname.endsWith(".telegram.org") ||
+    /^tg:/i.test(href)
+  ) {
+    messenger = "telegram";
+  }
+
+  if (!messenger || typeof window.gtag !== "function") return;
+
+  // Передаём только тип мессенджера, не отправляя URL с возможными личными данными.
+  window.gtag("event", "messenger_click", {
+    messenger: messenger
+  });
+});
