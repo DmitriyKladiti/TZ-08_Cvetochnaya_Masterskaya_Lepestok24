@@ -36,6 +36,17 @@ const currentPage = window.location.pathname.split("/").pop() || "index.html";
 const pageParams = new URLSearchParams(window.location.search);
 const requestedOrderId = pageParams.get("item_id");
 
+const utmSource = pageParams.get("utm_source");
+
+if (utmSource && typeof window.gtag === "function") {
+  window.gtag("event", "utm_visit", {
+    utm_source: utmSource,
+    utm_medium: pageParams.get("utm_medium") || "not_set",
+    utm_campaign: pageParams.get("utm_campaign") || "not_set",
+    landing_page: window.location.pathname
+  });
+}
+
 // Параметры URL служат резервом на случай, если браузер запрещает sessionStorage.
 const readOrderFlowFromUrl = () => {
   const expectedStep = currentPage === "delivery.html"
