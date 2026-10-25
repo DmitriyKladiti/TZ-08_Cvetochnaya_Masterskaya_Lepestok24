@@ -38,6 +38,34 @@ const requestedOrderId = pageParams.get("item_id");
 
 const utmSource = pageParams.get("utm_source");
 
+// Сохраняем UTM-метки между страницами маршрута заказа, поскольку переходы
+// delivery.html и contacts.html формируют собственные URL.
+const ORDER_ATTRIBUTION_KEY = "lepestok24_order_attribution";
+const UTM_DEFAULTS = {
+  utm_source: "direct",
+  utm_medium: "none",
+  utm_campaign: "not_set",
+  utm_content: "not_set"
+};
+let orderAttribution = { ...UTM_DEFAULTS };
+try {
+  const storedAttribution = JSON.parse(sessionStorage.getItem(ORDER_ATTRIBUTION_KEY) || "null");
+  if (storedAttribution && typeof storedAttribution === "object") {
+    orderAttribution = { ...orderAttribution, ...storedAttribution };
+  }
+
+  Object.keys(UTM_DEFAULTS).forEach((key) => {
+    const value = pageParams.get(key);
+    if (value && value.trim()) {
+      orderAttribution[key] = value.trim().slice(0, 200);
+    }
+  });
+  // При первом переходе с рекламными метками сохраняем атрибуцию в рамках сессии.
+  sessionStorage.setItem(ORDER_ATTRIBUTION_KEY, JSON.stringify(orderAttribution));
+} catch (_) {
+  // В приватном режиме или при отключённом sessionStorage используются значения по умолчанию.
+}
+
 if (utmSource && typeof window.gtag === "function") {
   window.gtag("event", "utm_visit", {
     utm_source: utmSource,
@@ -678,6 +706,69 @@ if (deliveryZone && orderSum) {
 const orderForm = document.querySelector("#order-form");
 
 if (orderForm) {
+  const requestIdInput = document.querySelector("#request-id");
+  const submissionFrame = document.querySelector("#submission-frame");
+  const submitButton = orderForm.querySelector('button[type="submit"]');
+  const appsScriptUrl = "https://script.google.com/macros/s/AKfycbwZjoOCdqw3cbsyumcgGQiNL-1saOmwRYZiNNA4m7JvGO8IHIb8kunj9n4Wd_KaVaq2/exec";
+  let waitingForSheetResponse = false;
+  let redirectAfterSheetResponse = null;
+  let sheetResponseFallbackTimer = null;
+
+  if (submissionFrame) {
+    submissionFrame.addEventListener("load", () => {
+      if (!waitingForSheetResponse) return;
+
+      // Не принимаем начальную пустую страницу iframe за ответ сервера.
+      // Когда iframe переходит на Google Apps Script, доступ к location блокируется браузером.
+      try {
+        const frameUrl = submissionFrame.contentWindow.location.href;
+        if (frameUrl === "about:blank" || frameUrl === "about:srcdoc") return;
+      } catch (_) {
+        // Ожидаемый случай: ответ загружен с другого домена.
+      }
+
+      waitingForSheetResponse = false;
+      if (sheetResponseFallbackTimer) {
+        window.clearTimeout(sheetResponseFallbackTimer);
+        sheetResponseFallbackTimer = null;
+      }
+      if (typeof redirectAfterSheetResponse === "function") {
+        redirectAfterSheetResponse();
+      }
+    });
+  }
+
+  const createRequestId = () => {
+    let bytes;
+    if (window.crypto && typeof window.crypto.getRandomValues === "function") {
+      bytes = new Uint8Array(16);
+      window.crypto.getRandomValues(bytes);
+    } else {
+      bytes = Uint8Array.from({ length: 16 }, () => Math.floor(Math.random() * 256));
+    }
+    // Формат соответствует проверке UUID v4 на стороне Apps Script.
+    bytes[6] = (bytes[6] & 0x0f) | 0x40;
+    bytes[8] = (bytes[8] & 0x3f) | 0x80;
+    const hex = Array.from(bytes, (value) => value.toString(16).padStart(2, "0")).join("").toUpperCase();
+    return `REQ-${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+  };
+
+  const fillSubmissionMetadata = () => {
+    if (requestIdInput && !requestIdInput.value) {
+      requestIdInput.value = createRequestId();
+    }
+    const attributionFields = {
+      utm_source: "#order-utm-source",
+      utm_medium: "#order-utm-medium",
+      utm_campaign: "#order-utm-campaign",
+      utm_content: "#order-utm-content"
+    };
+    Object.entries(attributionFields).forEach(([key, selector]) => {
+      const input = document.querySelector(selector);
+      if (input) input.value = String(orderAttribution[key] || UTM_DEFAULTS[key]).slice(0, 200);
+    });
+  };
+
   const dateInput = document.querySelector("#delivery-date");
   const itemIdInput = document.querySelector("#item-id");
   const itemNameInput = document.querySelector("#selected-item-name");
@@ -928,38 +1019,45 @@ if (orderForm) {
     return finalItemPrice + getDeliveryFee();
   };
 
-  // После успешной проверки отправляем generate_lead и form_submit.
-  // Таймер нужен, чтобы переход не зависел от блокировщика рекламы или сети.
+  // После успешной проверки передаём форму в Apps Script и отправляем события GA4.
+  // JSON-ответ Apps Script загружается в iframe другого домена: прочитать поле ok
+  // из этого ответа из браузера нельзя, поэтому запись можно проверить по request_id.
   const sendSubmitEventAndRedirect = () => {
     let redirected = false;
     const redirectToThanks = () => {
       if (redirected) return;
       redirected = true;
-      window.location.href = "thanks.html";
+      const requestId = requestIdInput?.value || "";
+      const query = requestId ? `?request_id=${encodeURIComponent(requestId)}` : "";
+      window.location.href = `thanks.html${query}`;
     };
 
-    if (typeof window.gtag !== "function") {
+    redirectAfterSheetResponse = redirectToThanks;
+
+    // Не оставляем пользователя на форме бесконечно, если iframe не сообщает о загрузке ответа.
+    sheetResponseFallbackTimer = window.setTimeout(() => {
+      waitingForSheetResponse = false;
+      if (orderStatus) {
+        orderStatus.textContent = `Автоматически подтвердить ответ не удалось. При необходимости проверьте таблицу по номеру заявки ${requestIdInput?.value || ""}.`;
+      }
       redirectToThanks();
-      return;
+    }, 10000);
+
+    if (typeof window.gtag === "function") {
+      // В GA4 не отправляем имя, телефон, e-mail, промокод или комментарий.
+      window.gtag("event", "generate_lead", {
+        lead_item_id: itemIdInput?.value || selectedItemId || "unknown",
+        lead_zone: deliveryZoneForm?.value || selectedFlow?.delivery_zone || "unknown",
+        value: getLeadValue(),
+        currency: "RUB"
+      });
+
+      // Событие фиксирует попытку отправки формы, а не подтверждённую запись в таблицу.
+      window.gtag("event", "form_submit", {
+        form_id: "order-form",
+        form_name: "order_form"
+      });
     }
-
-    // generate_lead отправляется только после успешной локальной проверки формы.
-    // Не передаём в GA4 имя, телефоны, e-mail, промокод или комментарий.
-    window.gtag("event", "generate_lead", {
-      lead_item_id: itemIdInput?.value || selectedItemId || "unknown",
-      lead_zone: deliveryZoneForm?.value || selectedFlow?.delivery_zone || "unknown",
-      value: getLeadValue(),
-      currency: "RUB"
-    });
-
-    window.gtag("event", "form_submit", {
-      form_id: "order-form",
-      form_name: "order_form",
-      event_callback: redirectToThanks,
-      event_timeout: 1500
-    });
-
-    window.setTimeout(redirectToThanks, 1800);
   };
 
   orderForm.addEventListener("submit", (event) => {
@@ -984,9 +1082,39 @@ if (orderForm) {
 
     if (!orderForm.reportValidity()) return;
 
-    orderStatus.textContent = "Проверка пройдена. Переходим на страницу благодарности…";
+    if (!/^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec$/.test(orderForm.action) || orderForm.action !== appsScriptUrl) {
+      orderStatus.textContent = "Не удалось подключить приёмник заявок. Проверьте адрес Apps Script.";
+      orderStatus.classList.remove("notice");
+      orderStatus.classList.add("notice-warning");
+      return;
+    }
+
+    fillSubmissionMetadata();
+    if (!requestIdInput?.value) {
+      orderStatus.textContent = "Не удалось создать номер заявки. Обновите страницу и попробуйте ещё раз.";
+      orderStatus.classList.add("notice-warning");
+      return;
+    }
+
+    orderStatus.textContent = `Данные передаются в приёмник заявок. Номер заявки: ${requestIdInput.value}.`;
     orderStatus.classList.remove("notice-warning");
     orderStatus.classList.add("notice");
+    if (submitButton) submitButton.disabled = true;
+    waitingForSheetResponse = Boolean(submissionFrame);
+
+    // Как в примере преподавателя: отправляем обычный POST в скрытый iframe,
+    // поэтому страница не уходит на JSON-ответ Apps Script.
+    try {
+      HTMLFormElement.prototype.submit.call(orderForm);
+    } catch (_) {
+      waitingForSheetResponse = false;
+      if (submitButton) submitButton.disabled = false;
+      orderStatus.textContent = "Не удалось отправить данные. Проверьте подключение и повторите попытку.";
+      orderStatus.classList.remove("notice");
+      orderStatus.classList.add("notice-warning");
+      return;
+    }
+
     sendSubmitEventAndRedirect();
   });
 }
