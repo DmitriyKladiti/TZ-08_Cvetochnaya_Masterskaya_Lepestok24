@@ -745,6 +745,56 @@ if (orderForm) {
 
   updateOrderPrice();
 
+  // GA4: form_start фиксируется один раз при первом взаимодействии с редактируемым полем.
+  // Не передаём в аналитику имя, телефон, e-mail, комментарий или другие персональные данные.
+  let formStartTracked = false;
+
+  const trackFormStart = (event) => {
+    const target = event.target;
+    const isEditableField = target instanceof HTMLElement && target.matches(
+      'input:not([type="hidden"]):not([readonly]):not([disabled]), textarea:not([readonly]):not([disabled]), select:not([disabled])'
+    );
+
+    if (!isEditableField || formStartTracked) return;
+    formStartTracked = true;
+
+    if (typeof window.gtag === "function") {
+      window.gtag("event", "form_start", {
+        form_id: "order-form",
+        form_name: "order_form"
+      });
+    }
+  };
+
+  orderForm.addEventListener("focusin", trackFormStart);
+  orderForm.addEventListener("input", trackFormStart);
+  orderForm.addEventListener("change", trackFormStart);
+
+  // После успешной проверки отправляем form_submit и ждём callback GA4.
+  // Таймер нужен, чтобы переход не зависел от блокировщика рекламы или сети.
+  const sendSubmitEventAndRedirect = () => {
+    let redirected = false;
+    const redirectToThanks = () => {
+      if (redirected) return;
+      redirected = true;
+      window.location.href = "thanks.html";
+    };
+
+    if (typeof window.gtag !== "function") {
+      redirectToThanks();
+      return;
+    }
+
+    window.gtag("event", "form_submit", {
+      form_id: "order-form",
+      form_name: "order_form",
+      event_callback: redirectToThanks,
+      event_timeout: 1500
+    });
+
+    window.setTimeout(redirectToThanks, 1800);
+  };
+
   orderForm.addEventListener("submit", (event) => {
     event.preventDefault();
     orderStatus.textContent = "";
@@ -767,15 +817,10 @@ if (orderForm) {
 
     if (!orderForm.reportValidity()) return;
 
-    const finalCode = promoInput.value.trim().toUpperCase();
-    const discountApplied = Boolean(promoDefinitions[finalCode]);
-    orderStatus.textContent =
-      `Поля заполнены корректно. Текущая цена заказа: ${currentPriceNode?.value || "не рассчитана"}. ` +
-      (discountApplied ? `Промокод ${finalCode} учтён. ` : "") +
-      "Сейчас форма находится в демонстрационном режиме: данные не отправлены. " +
-      "После подключения приёмника заявок этот шаг будет заменён реальной отправкой.";
-
-    orderStatus.classList.add("notice", "notice-warning");
+    orderStatus.textContent = "Проверка пройдена. Переходим на страницу благодарности…";
+    orderStatus.classList.remove("notice-warning");
+    orderStatus.classList.add("notice");
+    sendSubmitEventAndRedirect();
   });
 }
 
