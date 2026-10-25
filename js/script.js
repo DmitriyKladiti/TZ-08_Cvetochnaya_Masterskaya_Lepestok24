@@ -634,7 +634,30 @@ if (deliveryZone && orderSum) {
           : baseFee;
 
       saveOrderFlow(flow);
-      window.location.href = orderFlowUrl("contacts.html", flow);
+
+      // GA4: отправляем расчёт доставки после нажатия «Перейти к заказу».
+      // delivery_price — итоговая цена после учёта самовывоза и бесплатной доставки.
+      const orderUrl = orderFlowUrl("contacts.html", flow);
+      let navigationStarted = false;
+      const continueToOrder = () => {
+        if (navigationStarted) return;
+        navigationStarted = true;
+        window.location.href = orderUrl;
+      };
+
+      if (typeof window.gtag === "function") {
+        window.gtag("event", "delivery_calc", {
+          delivery_zone: flow.delivery_zone,
+          delivery_price: flow.delivery_fee,
+          event_callback: continueToOrder,
+          event_timeout: 1000
+        });
+
+        // Резервный переход на случай, если callback GA4 не сработает.
+        window.setTimeout(continueToOrder, 1200);
+      } else {
+        continueToOrder();
+      }
     });
   }
 }
