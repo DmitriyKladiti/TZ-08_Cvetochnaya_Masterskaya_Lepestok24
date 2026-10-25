@@ -1,6 +1,6 @@
 "use strict";
 
-// Этот файл содержит только поведение интерфейса. События GA4 здесь не отправляются.
+// Этот файл содержит поведение интерфейса и отправку событий GA4.
 
 const ORDER_FLOW_KEY = "lepestok24_order_flow";
 const DELIVERY_TIME_SLOTS = [
@@ -770,7 +770,53 @@ if (orderForm) {
   orderForm.addEventListener("input", trackFormStart);
   orderForm.addEventListener("change", trackFormStart);
 
-  // После успешной проверки отправляем form_submit и ждём callback GA4.
+  // GA4: отслеживаем клики по редактируемым полям формы.
+  // Передаём только название поля и раздел формы, но никогда не его значение.
+  const ctaFieldNames = {
+    "customer-name": "Имя",
+    "customer-phone": "Телефон",
+    "customer-email": "E-mail",
+    "delivery-date": "Дата доставки",
+    "promo-input": "Промокод",
+    "recipient-name": "Имя получателя",
+    "recipient-phone": "Телефон получателя",
+    "order-comment": "Пожелания к заказу",
+    "personal-consent": "Согласие на обработку персональных данных"
+  };
+
+  const editableFieldSelector =
+    'input:not([type="hidden"]):not([readonly]):not([disabled]), textarea:not([readonly]):not([disabled]), select:not([disabled])';
+
+  orderForm.addEventListener("click", (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) return;
+
+    const field = target.closest(editableFieldSelector);
+    if (!field || !orderForm.contains(field)) return;
+
+    const sectionNode = field.closest("[data-ga-section]");
+    const pageSection = sectionNode?.dataset.gaSection || "order_details";
+    const buttonName = ctaFieldNames[field.id] || field.name || field.id || "form_field";
+
+    if (typeof window.gtag === "function") {
+      window.gtag("event", "cta_click", {
+        button_name: buttonName,
+        page_section: pageSection
+      });
+    }
+  });
+
+  // Стоимость лида: цена букета после скидки + стоимость доставки.
+  // Сумма вычисляется числом, без символов валюты и форматирования.
+  const getLeadValue = () => {
+    const normalizedCode = promoInput ? promoInput.value.trim().toUpperCase() : "";
+    const discountRate = promoDefinitions[normalizedCode] || 0;
+    const discount = Math.round(baseItemPrice * discountRate);
+    const finalItemPrice = Math.max(0, baseItemPrice - discount);
+    return finalItemPrice + getDeliveryFee();
+  };
+
+  // После успешной проверки отправляем generate_lead и form_submit.
   // Таймер нужен, чтобы переход не зависел от блокировщика рекламы или сети.
   const sendSubmitEventAndRedirect = () => {
     let redirected = false;
@@ -784,6 +830,15 @@ if (orderForm) {
       redirectToThanks();
       return;
     }
+
+    // generate_lead отправляется только после успешной локальной проверки формы.
+    // Не передаём в GA4 имя, телефоны, e-mail, промокод или комментарий.
+    window.gtag("event", "generate_lead", {
+      lead_item_id: itemIdInput?.value || selectedItemId || "unknown",
+      lead_zone: deliveryZoneForm?.value || selectedFlow?.delivery_zone || "unknown",
+      value: getLeadValue(),
+      currency: "RUB"
+    });
 
     window.gtag("event", "form_submit", {
       form_id: "order-form",
