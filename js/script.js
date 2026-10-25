@@ -258,9 +258,33 @@ if (catalogGrid) {
     }
   };
 
+  // GA4: отслеживаем изменение фильтров каталога.
+  // В событие не передаются персональные данные — только выбранные условия поиска.
+  const trackCatalogFilter = (control) => {
+    if (typeof window.gtag !== "function") return;
+
+    const filterType = control === categoryFilter
+      ? "category"
+      : (control === colorFilter ? "color" : "price");
+    const minRaw = minPriceFilter.value.trim();
+    const maxRaw = maxPriceFilter.value.trim();
+
+    window.gtag("event", "catalog_filter", {
+      filter_type: filterType,
+      filter_value_min: minRaw === "" ? 0 : Number(minRaw),
+      // -1 означает, что верхняя граница цены не задана.
+      filter_value_max: maxRaw === "" ? -1 : Number(maxRaw),
+      filter_color: colorFilter.value,
+      // Дополнительный параметр сохраняет выбранную категорию.
+      filter_category: categoryFilter.value
+    });
+  };
+
   [categoryFilter, minPriceFilter, maxPriceFilter, colorFilter].forEach((control) => {
     control.addEventListener("input", filterCatalog);
     control.addEventListener("change", filterCatalog);
+    // Отправляем событие только на change, чтобы не отправлять его на каждый символ.
+    control.addEventListener("change", () => trackCatalogFilter(control));
   });
 
   const params = new URLSearchParams(window.location.search);
